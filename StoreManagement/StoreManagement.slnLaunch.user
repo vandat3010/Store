@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "..\\StoreManagement.UI\\StoreManagement.UI.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "StoreManagement.API.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      }
+    ]
+  }
+]

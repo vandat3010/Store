@@ -1,0 +1,66 @@
+﻿@page "/customers/add"
+@page "/customers/edit/{Id:int}"
+@using StoreManagement.UI.Models.DTOs
+@using StoreManagement.UI.Services.Interfaces
+@inject ICustomerService CustomerService
+@inject NavigationManager Nav
+
+<h3>@(IsEdit ? "Edit Customer" : "Add Customer")</h3>
+
+<EditForm Model="customer" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Name:</label>
+        <InputText class="form-control" @bind-Value="customer.Name" />
+    </div>
+
+    <div class="mb-3">
+        <label>Address:</label>
+        <InputText class="form-control" @bind-Value="customer.Address" />
+    </div>
+
+    <div class="mb-3">
+        <label>Phone:</label>
+        <InputText class="form-control" @bind-Value="customer.Phone" />
+    </div>
+    <button type="submit" class="btn btn-primary">@((IsEdit ? "Update" : "Create"))</button>
+    <button type="button" class="btn btn-secondary" @onclick="OnCancel">Cancel</button>
+
+</EditForm>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private CustomerDto customer = new();
+    private bool IsEdit => Id.HasValue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEdit)
+        {
+            var existing = await CustomerService.GetByIdAsync(Id.Value);
+            if (existing is not null)
+                customer = existing;
+            else
+                Nav.NavigateTo("/customers"); // redirect if not found
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        bool result;
+        if (IsEdit)
+            result = await CustomerService.UpdateAsync(customer);
+        else
+            result = await CustomerService.CreateAsync(customer);
+
+        if (result)
+            Nav.NavigateTo("/customers");
+    }
+    private void OnCancel()
+    {
+        Nav.NavigateTo("/customers");
+    }
+}

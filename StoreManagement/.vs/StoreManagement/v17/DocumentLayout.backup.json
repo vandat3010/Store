@@ -1,0 +1,133 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A5F4574C-2EB0-457C-8AC5-1F657479E78C}|..\\StoreManagement.UI\\StoreManagement.UI.csproj|c:\\users\\admin\\onedrive\\desktop\\pro\\storemanagement.ui\\pages\\customers\\customerlist.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A5F4574C-2EB0-457C-8AC5-1F657479E78C}|..\\StoreManagement.UI\\StoreManagement.UI.csproj|c:\\users\\admin\\onedrive\\desktop\\pro\\storemanagement.ui\\services\\customerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A5F4574C-2EB0-457C-8AC5-1F657479E78C}|..\\StoreManagement.UI\\StoreManagement.UI.csproj|c:\\users\\admin\\onedrive\\desktop\\pro\\storemanagement.ui\\http\\apiroutes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A5F4574C-2EB0-457C-8AC5-1F657479E78C}|..\\StoreManagement.UI\\StoreManagement.UI.csproj|c:\\users\\admin\\onedrive\\desktop\\pro\\storemanagement.ui\\pages\\customers\\addandeditcustomer.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{37E1043F-23AF-4541-9B78-6EF2F2374EAF}|StoreManagement.API.csproj|c:\\users\\admin\\onedrive\\desktop\\pro\\storemanagement\\controllers\\customercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{37E1043F-23AF-4541-9B78-6EF2F2374EAF}|StoreManagement.API.csproj|solutionrelative:controllers\\customercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A5F4574C-2EB0-457C-8AC5-1F657479E78C}|..\\StoreManagement.UI\\StoreManagement.UI.csproj|c:\\users\\admin\\onedrive\\desktop\\pro\\storemanagement.ui\\services\\interfaces\\icustomerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A5F4574C-2EB0-457C-8AC5-1F657479E78C}|..\\StoreManagement.UI\\StoreManagement.UI.csproj|c:\\users\\admin\\onedrive\\desktop\\pro\\storemanagement.ui\\models\\dtos\\searchrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "CustomerList.razor",
+              "DocumentMoniker": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Pages\\Customers\\CustomerList.razor",
+              "RelativeDocumentMoniker": "..\\StoreManagement.UI\\Pages\\Customers\\CustomerList.razor",
+              "ToolTip": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Pages\\Customers\\CustomerList.razor",
+              "RelativeToolTip": "..\\StoreManagement.UI\\Pages\\Customers\\CustomerList.razor",
+              "ViewState": "AgIAAIUAAAAAAAAAAAAkwKQAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-07-23T15:57:22.613Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ApiRoutes.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Http\\ApiRoutes.cs",
+              "RelativeDocumentMoniker": "..\\StoreManagement.UI\\Http\\ApiRoutes.cs",
+              "ToolTip": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Http\\ApiRoutes.cs",
+              "RelativeToolTip": "..\\StoreManagement.UI\\Http\\ApiRoutes.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAUwAwAAABEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-23T15:45:06.169Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "SearchRequest.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Models\\DTOs\\SearchRequest.cs",
+              "RelativeDocumentMoniker": "..\\StoreManagement.UI\\Models\\DTOs\\SearchRequest.cs",
+              "ToolTip": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Models\\DTOs\\SearchRequest.cs",
+              "RelativeToolTip": "..\\StoreManagement.UI\\Models\\DTOs\\SearchRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-23T15:28:48.21Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AddAndEditCustomer.razor",
+              "DocumentMoniker": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Pages\\Customers\\AddAndEditCustomer.razor",
+              "RelativeDocumentMoniker": "..\\StoreManagement.UI\\Pages\\Customers\\AddAndEditCustomer.razor",
+              "ToolTip": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Pages\\Customers\\AddAndEditCustomer.razor",
+              "RelativeToolTip": "..\\StoreManagement.UI\\Pages\\Customers\\AddAndEditCustomer.razor",
+              "ViewState": "AgIAAC8AAAAAAAAAAAAmwDoAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-07-23T14:40:31.743Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ICustomerService.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Services\\Interfaces\\ICustomerService.cs",
+              "RelativeDocumentMoniker": "..\\StoreManagement.UI\\Services\\Interfaces\\ICustomerService.cs",
+              "ToolTip": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Services\\Interfaces\\ICustomerService.cs",
+              "RelativeToolTip": "..\\StoreManagement.UI\\Services\\Interfaces\\ICustomerService.cs",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAIwAgAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-22T09:00:17.486Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CustomerService.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Services\\CustomerService.cs",
+              "RelativeDocumentMoniker": "..\\StoreManagement.UI\\Services\\CustomerService.cs",
+              "ToolTip": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement.UI\\Services\\CustomerService.cs",
+              "RelativeToolTip": "..\\StoreManagement.UI\\Services\\CustomerService.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAqwB8AAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-23T15:29:43.853Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "CustomerController.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement\\Controllers\\CustomerController.cs",
+              "RelativeDocumentMoniker": "Controllers\\CustomerController.cs",
+              "ToolTip": "C:\\Users\\Admin\\OneDrive\\Desktop\\PRO\\StoreManagement\\Controllers\\CustomerController.cs",
+              "RelativeToolTip": "Controllers\\CustomerController.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAA4wCMAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-23T15:27:04.67Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
