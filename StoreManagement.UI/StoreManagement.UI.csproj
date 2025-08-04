@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <Folder Include="Auth\" />
+    <Folder Include="Components\Charts\" />
     <Folder Include="Extensions\" />
     <Folder Include="State\" />
     <Folder Include="Heppers\" />

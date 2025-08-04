@@ -1,0 +1,143 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="chart-container">
+    <h3>@Title</h3>
+    <canvas id="@CanvasId" width="400" height="200"></canvas>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Dual Axis Chart";
+    [Parameter] public Dictionary<string, double> PrimaryData { get; set; } = new();
+    [Parameter] public Dictionary<string, double> SecondaryData { get; set; } = new();
+    [Parameter] public string PrimaryLabel { get; set; } = "Primary Data";
+    [Parameter] public string SecondaryLabel { get; set; } = "Secondary Data";
+    [Parameter] public string PrimaryColor { get; set; } = "rgb(75, 192, 192)";
+    [Parameter] public string SecondaryColor { get; set; } = "rgb(54, 162, 235)";
+
+    private string CanvasId = Guid.NewGuid().ToString();
+    private bool _chartInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeChart();
+        }
+    }
+
+    private async Task InitializeChart()
+    {
+        // Add sample data if no data provided
+        if (!PrimaryData.Any())
+        {
+            PrimaryData = new Dictionary<string, double>
+            {
+                { "Apr 01", 1.5 },
+                { "Apr 02", 2.8 },
+                { "Apr 03", 4.2 },
+                { "Apr 04", 3.8 },
+                { "Apr 05", 4.1 },
+                { "Apr 06", 4.5 },
+                { "Apr 07", 4.8 },
+                { "Apr 08", 3.2 },
+                { "Apr 09", 3.6 },
+                { "Apr 10", 3.9 }
+            };
+        }
+
+        if (!SecondaryData.Any())
+        {
+            SecondaryData = new Dictionary<string, double>
+            {
+                { "Apr 01", 2.1 },
+                { "Apr 02", 3.5 },
+                { "Apr 03", 4.8 },
+                { "Apr 04", 4.2 },
+                { "Apr 05", 4.6 },
+                { "Apr 06", 5.1 },
+                { "Apr 07", 5.8 },
+                { "Apr 08", 4.1 },
+                { "Apr 09", 4.8 },
+                { "Apr 10", 5.2 }
+            };
+        }
+
+        var labels = PrimaryData.Keys.ToArray();
+        var primaryValues = PrimaryData.Values.ToArray();
+        var secondaryValues = SecondaryData.Values.ToArray();
+
+        try
+        {
+            var config = await JSRuntime.InvokeAsync<object>("chartHelper.getDualAxisChartConfig", 
+                labels, primaryValues, secondaryValues, PrimaryLabel, SecondaryLabel, PrimaryColor, SecondaryColor);
+            
+            _chartInitialized = await JSRuntime.InvokeAsync<bool>("chartHelper.createChart", CanvasId, config);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing dual axis chart: {ex.Message}");
+        }
+    }
+
+    public async Task UpdateChart(Dictionary<string, double> newPrimaryData, Dictionary<string, double> newSecondaryData)
+    {
+        PrimaryData = newPrimaryData;
+        SecondaryData = newSecondaryData;
+        
+        if (_chartInitialized)
+        {
+            var labels = PrimaryData.Keys.ToArray();
+            var primaryValues = PrimaryData.Values.ToArray();
+            var secondaryValues = SecondaryData.Values.ToArray();
+
+            try
+            {
+                var config = await JSRuntime.InvokeAsync<object>("chartHelper.getDualAxisChartConfig", 
+                    labels, primaryValues, secondaryValues, PrimaryLabel, SecondaryLabel, PrimaryColor, SecondaryColor);
+                
+                await JSRuntime.InvokeVoidAsync("chartHelper.updateChart", CanvasId, config);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating dual axis chart: {ex.Message}");
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_chartInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("chartHelper.destroyChart", CanvasId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disposing dual axis chart: {ex.Message}");
+            }
+        }
+    }
+}
+
+<style>
+    .chart-container {
+        padding: 20px;
+        margin: 20px 0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fff;
+    }
+
+    .chart-container h3 {
+        margin-bottom: 15px;
+        color: #333;
+        text-align: center;
+    }
+
+    .chart-container canvas {
+        max-width: 100%;
+        height: auto;
+    }
+</style>

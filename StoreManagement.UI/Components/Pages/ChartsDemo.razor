@@ -1,0 +1,333 @@
+@page "/charts-demo"
+@using StoreManagement.UI.Components.Charts
+
+<PageTitle>Solar Charts Demo</PageTitle>
+
+<div class="charts-demo-container">
+    <div class="demo-header">
+        <h1>🌞 Solar Energy Dashboard</h1>
+        <p class="demo-subtitle">Comprehensive solar farm monitoring and analytics</p>
+    </div>
+
+    <div class="charts-grid">
+        <!-- Solar Chart -->
+        <div class="chart-section">
+            <SolarChart 
+                Title="Irradiance vs Specific Yield Correlation"
+                Subtitle="Real-time Intraday Hourly Generation"
+                Description="Solar AC Energy Output within the day - Till Today"
+                PrimaryData="@solarPrimaryData"
+                SecondaryData="@solarSecondaryData"
+                PrimaryLabel="Specific Yield (kWh/kWp)"
+                SecondaryLabel="Irradiance (W/m²)" />
+        </div>
+
+        <!-- Performance Chart -->
+        <div class="chart-section">
+            <PerformanceChart 
+                Title="Performance Analysis"
+                Subtitle="Real-time Performance Monitoring"
+                Description="Actual vs Expected performance with efficiency metrics"
+                ActualData="@performanceActualData"
+                ExpectedData="@performanceExpectedData"
+                EfficiencyData="@performanceEfficiencyData"
+                PerformanceRating="87.3"
+                CurrentOutput="4.2"
+                CapacityFactor="23.8"
+                TargetAchievement="94.5" />
+        </div>
+
+        <!-- Degradation Chart -->
+        <div class="chart-section">
+            <DegradationChart 
+                Title="Degradation Analysis"
+                Subtitle="Performance Degradation Over Time"
+                Description="Long-term performance tracking and degradation rate analysis"
+                PerformanceData="@degradationPerformanceData"
+                TrendData="@degradationTrendData"
+                BaselineData="@degradationBaselineData"
+                DegradationRate="0.45"
+                CurrentPerformance="94.2"
+                PerformanceChange="-0.12"
+                SystemAge="3.2"
+                InstallationDate="@(new DateTime(2021, 3, 15))"
+                ExpectedLifetime="25"
+                AnalysisSummary="System performance is within expected parameters. Degradation rate is below industry average." />
+        </div>
+
+        <!-- Weather Impact Chart -->
+        <div class="chart-section">
+            <WeatherImpactChart 
+                Title="Weather Impact Analysis"
+                Subtitle="Environmental Factors vs Performance"
+                Description="Real-time correlation between weather conditions and solar output"
+                IrradianceData="@weatherIrradianceData"
+                TemperatureData="@weatherTemperatureData"
+                OutputData="@weatherOutputData"
+                EfficiencyData="@weatherEfficiencyData"
+                CurrentWeather="Partly Cloudy"
+                Temperature="28.5"
+                PeakIrradiance="1050"
+                OptimalTempMin="20"
+                OptimalTempMax="25"
+                CloudCoverage="35"
+                WindSpeed="12.5"
+                WeatherForecast="@weatherForecast" />
+        </div>
+    </div>
+
+    <div class="demo-footer">
+        <div class="footer-stats">
+            <div class="stat-item">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-content">
+                    <h4>Total Generation</h4>
+                    <div class="stat-value">1,247.8 MWh</div>
+                    <div class="stat-period">This month</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">🌱</div>
+                <div class="stat-content">
+                    <h4>CO₂ Avoided</h4>
+                    <div class="stat-value">623.9 tons</div>
+                    <div class="stat-period">This month</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <h4>Revenue</h4>
+                    <div class="stat-value">$87,436</div>
+                    <div class="stat-period">This month</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <h4>Efficiency</h4>
+                    <div class="stat-value">94.2%</div>
+                    <div class="stat-period">Average</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // Solar Chart Data
+    private Dictionary<string, double> solarPrimaryData = new()
+    {
+        { "Apr 06 06:00", 0.5 }, { "Apr 06 08:00", 1.8 }, { "Apr 06 10:00", 3.2 }, { "Apr 06 12:00", 4.1 },
+        { "Apr 06 14:00", 3.8 }, { "Apr 06 16:00", 2.9 }, { "Apr 06 18:00", 1.2 }, { "Apr 06 20:00", 0.3 },
+        { "Apr 07 06:00", 0.6 }, { "Apr 07 08:00", 2.1 }, { "Apr 07 10:00", 3.5 }, { "Apr 07 12:00", 4.3 },
+        { "Apr 07 14:00", 4.0 }, { "Apr 07 16:00", 3.1 }, { "Apr 07 18:00", 1.4 }, { "Apr 07 20:00", 0.4 }
+    };
+
+    private Dictionary<string, double> solarSecondaryData = new()
+    {
+        { "Apr 06 06:00", 150 }, { "Apr 06 08:00", 450 }, { "Apr 06 10:00", 750 }, { "Apr 06 12:00", 950 },
+        { "Apr 06 14:00", 880 }, { "Apr 06 16:00", 620 }, { "Apr 06 18:00", 280 }, { "Apr 06 20:00", 80 },
+        { "Apr 07 06:00", 180 }, { "Apr 07 08:00", 520 }, { "Apr 07 10:00", 820 }, { "Apr 07 12:00", 1020 },
+        { "Apr 07 14:00", 950 }, { "Apr 07 16:00", 680 }, { "Apr 07 18:00", 320 }, { "Apr 07 20:00", 100 }
+    };
+
+    // Performance Chart Data
+    private Dictionary<string, double> performanceActualData = new()
+    {
+        { "00:00", 0 }, { "02:00", 0 }, { "04:00", 0 }, { "06:00", 1.2 },
+        { "08:00", 2.8 }, { "10:00", 3.9 }, { "12:00", 4.5 }, { "14:00", 4.2 },
+        { "16:00", 3.1 }, { "18:00", 1.8 }, { "20:00", 0.3 }, { "22:00", 0 }
+    };
+
+    private Dictionary<string, double> performanceExpectedData = new()
+    {
+        { "00:00", 0 }, { "02:00", 0 }, { "04:00", 0 }, { "06:00", 1.5 },
+        { "08:00", 3.2 }, { "10:00", 4.3 }, { "12:00", 4.8 }, { "14:00", 4.5 },
+        { "16:00", 3.5 }, { "18:00", 2.1 }, { "20:00", 0.5 }, { "22:00", 0 }
+    };
+
+    private Dictionary<string, double> performanceEfficiencyData = new()
+    {
+        { "00:00", 0 }, { "02:00", 0 }, { "04:00", 0 }, { "06:00", 80 },
+        { "08:00", 87.5 }, { "10:00", 90.7 }, { "12:00", 93.8 }, { "14:00", 93.3 },
+        { "16:00", 88.6 }, { "18:00", 85.7 }, { "20:00", 60 }, { "22:00", 0 }
+    };
+
+    // Degradation Chart Data
+    private Dictionary<string, double> degradationPerformanceData = new()
+    {
+        { "2021", 100 }, { "2021.5", 99.8 }, { "2022", 99.4 }, { "2022.5", 99.1 },
+        { "2023", 98.7 }, { "2023.5", 98.3 }, { "2024", 97.9 }, { "2024.5", 97.5 }
+    };
+
+    private Dictionary<string, double> degradationTrendData = new()
+    {
+        { "2021", 100 }, { "2021.5", 99.7 }, { "2022", 99.4 }, { "2022.5", 99.1 },
+        { "2023", 98.8 }, { "2023.5", 98.5 }, { "2024", 98.2 }, { "2024.5", 97.9 }
+    };
+
+    private Dictionary<string, double> degradationBaselineData = new()
+    {
+        { "2021", 100 }, { "2021.5", 99.6 }, { "2022", 99.2 }, { "2022.5", 98.8 },
+        { "2023", 98.4 }, { "2023.5", 98.0 }, { "2024", 97.6 }, { "2024.5", 97.2 }
+    };
+
+    // Weather Chart Data
+    private Dictionary<string, double> weatherIrradianceData = new()
+    {
+        { "06:00", 150 }, { "08:00", 450 }, { "10:00", 750 }, { "12:00", 1050 },
+        { "14:00", 980 }, { "16:00", 650 }, { "18:00", 280 }, { "20:00", 50 }
+    };
+
+    private Dictionary<string, double> weatherTemperatureData = new()
+    {
+        { "06:00", 22 }, { "08:00", 25 }, { "10:00", 28 }, { "12:00", 32 },
+        { "14:00", 35 }, { "16:00", 33 }, { "18:00", 29 }, { "20:00", 26 }
+    };
+
+    private Dictionary<string, double> weatherOutputData = new()
+    {
+        { "06:00", 0.8 }, { "08:00", 2.5 }, { "10:00", 4.1 }, { "12:00", 4.8 },
+        { "14:00", 4.2 }, { "16:00", 3.1 }, { "18:00", 1.4 }, { "20:00", 0.3 }
+    };
+
+    private Dictionary<string, double> weatherEfficiencyData = new()
+    {
+        { "06:00", 85 }, { "08:00", 92 }, { "10:00", 94 }, { "12:00", 89 },
+        { "14:00", 85 }, { "16:00", 88 }, { "18:00", 90 }, { "20:00", 82 }
+    };
+
+    private List<WeatherImpactChart.WeatherForecastItem> weatherForecast = new()
+    {
+        new() { Day = "Mon", Condition = "Sunny", Temperature = 29, ExpectedImpact = 95 },
+        new() { Day = "Tue", Condition = "Partly Cloudy", Temperature = 27, ExpectedImpact = 88 },
+        new() { Day = "Wed", Condition = "Cloudy", Temperature = 25, ExpectedImpact = 75 },
+        new() { Day = "Thu", Condition = "Rainy", Temperature = 23, ExpectedImpact = 45 },
+        new() { Day = "Fri", Condition = "Sunny", Temperature = 31, ExpectedImpact = 92 },
+        new() { Day = "Sat", Condition = "Partly Cloudy", Temperature = 28, ExpectedImpact = 85 },
+        new() { Day = "Sun", Condition = "Sunny", Temperature = 30, ExpectedImpact = 94 }
+    };
+}
+
+<style>
+    .charts-demo-container {
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .demo-header {
+        text-align: center;
+        margin-bottom: 40px;
+        color: white;
+    }
+
+    .demo-header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 0 0 16px 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .demo-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 300;
+    }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .chart-section {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .demo-footer {
+        margin-top: 40px;
+    }
+
+    .footer-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .stat-item {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .stat-icon {
+        font-size: 2.5rem;
+        opacity: 0.8;
+    }
+
+    .stat-content h4 {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        margin: 0 0 8px 0;
+        font-weight: 500;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-period {
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
+
+    @@media (max-width: 768px) {
+        .charts-demo-container {
+            padding: 16px;
+        }
+
+        .demo-header h1 {
+            font-size: 2rem;
+        }
+
+        .charts-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .chart-section {
+            padding: 16px;
+        }
+
+        .footer-stats {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-item {
+            padding: 16px;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+        }
+    }
+</style>

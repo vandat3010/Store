@@ -1,0 +1,246 @@
+@page "/charts"
+@using StoreManagement.UI.Components.Charts
+
+<PageTitle>Charts</PageTitle>
+
+<h1>Charts Dashboard</h1>
+
+<p>This page demonstrates various Chart.js charts integrated with Blazor.</p>
+
+<div class="row">
+    <div class="col-md-6">
+        <SalesChart Title="Monthly Sales" Data="salesData" @ref="salesChart" />
+    </div>
+    <div class="col-md-6">
+        <LineChart Title="Revenue Trend" Data="revenueData" @ref="lineChart" />
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <PieChart Title="Traffic Sources" Data="trafficData" @ref="pieChart" />
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Chart Information</h5>
+            </div>
+            <div class="card-body">
+                <p>These charts are powered by Chart.js and integrated with Blazor using JavaScript interop.</p>
+                <ul>
+                    <li><strong>Bar Chart:</strong> Shows monthly sales data</li>
+                    <li><strong>Line Chart:</strong> Displays revenue trends over quarters</li>
+                    <li><strong>Pie Chart:</strong> Represents traffic source distribution</li>
+                    <li><strong>Solar Chart:</strong> Dual-axis chart with dark theme</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <SolarChart Title="Irradiance vs Specific Yield Correlation"
+                   Subtitle="Relationship between Irradiance and Specific Yield (SY)"
+                   PrimaryData="solarPrimaryData"
+                   SecondaryData="solarSecondaryData"
+                   @ref="solarChart" />
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Chart Controls</h5>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-primary me-2" @onclick="UpdateSalesData">Update Sales Data</button>
+                <button class="btn btn-secondary me-2" @onclick="UpdateRevenueData">Update Revenue Data</button>
+                <button class="btn btn-info me-2" @onclick="UpdateTrafficData">Update Traffic Data</button>
+                <button class="btn btn-warning me-2" @onclick="UpdateSolarData">Update Solar Data</button>
+                <button class="btn btn-success" @onclick="ResetData">Reset to Default</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private SalesChart salesChart;
+    private LineChart lineChart;
+    private PieChart pieChart;
+    private SolarChart solarChart;
+
+    private Dictionary<string, double> salesData = new()
+    {
+        { "January", 1200 },
+        { "February", 1900 },
+        { "March", 3000 },
+        { "April", 5000 },
+        { "May", 2000 },
+        { "June", 3000 }
+    };
+
+    private Dictionary<string, double> revenueData = new()
+    {
+        { "Q1", 15000 },
+        { "Q2", 23000 },
+        { "Q3", 18000 },
+        { "Q4", 27000 }
+    };
+
+    private Dictionary<string, double> trafficData = new()
+    {
+        { "Desktop", 45 },
+        { "Mobile", 35 },
+        { "Tablet", 20 }
+    };
+
+    private Dictionary<string, double> solarPrimaryData = new()
+    {
+        { "Apr 01", 1.5 },
+        { "Apr 02", 2.8 },
+        { "Apr 03", 4.2 },
+        { "Apr 04", 3.8 },
+        { "Apr 05", 4.1 },
+        { "Apr 06", 4.5 },
+        { "Apr 07", 4.8 },
+        { "Apr 08", 3.2 },
+        { "Apr 09", 3.6 },
+        { "Apr 10", 3.9 }
+    };
+
+    private Dictionary<string, double> solarSecondaryData = new()
+    {
+        { "Apr 01", 2.1 },
+        { "Apr 02", 3.5 },
+        { "Apr 03", 4.8 },
+        { "Apr 04", 4.2 },
+        { "Apr 05", 4.6 },
+        { "Apr 06", 5.1 },
+        { "Apr 07", 5.8 },
+        { "Apr 08", 4.1 },
+        { "Apr 09", 4.8 },
+        { "Apr 10", 5.2 }
+    };
+
+    private async Task UpdateSalesData()
+    {
+        var random = new Random();
+        var newSalesData = new Dictionary<string, double>();
+        
+        foreach (var month in salesData.Keys)
+        {
+            newSalesData[month] = random.Next(1000, 6000);
+        }
+
+        await salesChart.UpdateChart(newSalesData);
+    }
+
+    private async Task UpdateRevenueData()
+    {
+        var random = new Random();
+        var newRevenueData = new Dictionary<string, double>();
+
+        foreach (var quarter in revenueData.Keys)
+        {
+            newRevenueData[quarter] = random.Next(10000, 30000);
+        }
+
+        await lineChart.UpdateChart(newRevenueData);
+    }
+
+    private async Task UpdateTrafficData()
+    {
+        var random = new Random();
+        var total = 100;
+        var desktop = random.Next(30, 60);
+        var mobile = random.Next(20, total - desktop - 5);
+        var tablet = total - desktop - mobile;
+
+        var newTrafficData = new Dictionary<string, double>
+        {
+            { "Desktop", desktop },
+            { "Mobile", mobile },
+            { "Tablet", tablet }
+        };
+
+        await pieChart.UpdateChart(newTrafficData);
+    }
+
+    private async Task UpdateSolarData()
+    {
+        var random = new Random();
+        var newPrimaryData = new Dictionary<string, double>();
+        var newSecondaryData = new Dictionary<string, double>();
+
+        foreach (var date in solarPrimaryData.Keys)
+        {
+            newPrimaryData[date] = Math.Round(random.NextDouble() * 3.5 + 1.5, 1);
+            newSecondaryData[date] = Math.Round(random.NextDouble() * 4 + 2, 1);
+        }
+
+        await solarChart.UpdateChart(newPrimaryData, newSecondaryData);
+    }
+
+    private async Task ResetData()
+    {
+        salesData = new Dictionary<string, double>
+        {
+            { "January", 1200 },
+            { "February", 1900 },
+            { "March", 3000 },
+            { "April", 5000 },
+            { "May", 2000 },
+            { "June", 3000 }
+        };
+
+        revenueData = new Dictionary<string, double>
+        {
+            { "Q1", 15000 },
+            { "Q2", 23000 },
+            { "Q3", 18000 },
+            { "Q4", 27000 }
+        };
+
+        trafficData = new Dictionary<string, double>
+        {
+            { "Desktop", 45 },
+            { "Mobile", 35 },
+            { "Tablet", 20 }
+        };
+
+        solarPrimaryData = new Dictionary<string, double>
+        {
+            { "Apr 01", 1.5 },
+            { "Apr 02", 2.8 },
+            { "Apr 03", 4.2 },
+            { "Apr 04", 3.8 },
+            { "Apr 05", 4.1 },
+            { "Apr 06", 4.5 },
+            { "Apr 07", 4.8 },
+            { "Apr 08", 3.2 },
+            { "Apr 09", 3.6 },
+            { "Apr 10", 3.9 }
+        };
+
+        solarSecondaryData = new Dictionary<string, double>
+        {
+            { "Apr 01", 2.1 },
+            { "Apr 02", 3.5 },
+            { "Apr 03", 4.8 },
+            { "Apr 04", 4.2 },
+            { "Apr 05", 4.6 },
+            { "Apr 06", 5.1 },
+            { "Apr 07", 5.8 },
+            { "Apr 08", 4.1 },
+            { "Apr 09", 4.8 },
+            { "Apr 10", 5.2 }
+        };
+
+        await salesChart.UpdateChart(salesData);
+        await lineChart.UpdateChart(revenueData);
+        await pieChart.UpdateChart(trafficData);
+        await solarChart.UpdateChart(solarPrimaryData, solarSecondaryData);
+    }
+}

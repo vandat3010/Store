@@ -1,0 +1,384 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="performance-chart-container">
+    <div class="chart-header">
+        <div class="header-top">
+            <h3>@Title</h3>
+            <div class="performance-indicator">
+                <span class="indicator-label">Performance</span>
+                <div class="indicator-value @GetPerformanceClass()">
+                    @PerformanceRating.ToString("N1")%
+                </div>
+            </div>
+        </div>
+        <div class="chart-subtitle">
+            <h4>@Subtitle <span class="info-icon">ℹ️</span></h4>
+            <p class="description">@Description</p>
+        </div>
+    </div>
+    
+    <div class="chart-wrapper">
+        <canvas id="@CanvasId"></canvas>
+    </div>
+    
+    <div class="chart-legend">
+        <div class="legend-item">
+            <span class="legend-dot actual"></span>
+            <span>Actual Performance</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot expected"></span>
+            <span>Expected Performance</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot efficiency"></span>
+            <span>Efficiency Ratio</span>
+        </div>
+    </div>
+
+    <div class="performance-metrics">
+        <div class="metric-card">
+            <div class="metric-icon">⚡</div>
+            <div class="metric-content">
+                <h5>Current Output</h5>
+                <div class="metric-value">@CurrentOutput.ToString("N1") MW</div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">📊</div>
+            <div class="metric-content">
+                <h5>Capacity Factor</h5>
+                <div class="metric-value">@CapacityFactor.ToString("N1")%</div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">🎯</div>
+            <div class="metric-content">
+                <h5>Target Achievement</h5>
+                <div class="metric-value">@TargetAchievement.ToString("N1")%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Performance Analysis";
+    [Parameter] public string Subtitle { get; set; } = "Real-time Performance Monitoring";
+    [Parameter] public string Description { get; set; } = "Actual vs Expected performance with efficiency metrics";
+    [Parameter] public Dictionary<string, double> ActualData { get; set; } = new();
+    [Parameter] public Dictionary<string, double> ExpectedData { get; set; } = new();
+    [Parameter] public Dictionary<string, double> EfficiencyData { get; set; } = new();
+    [Parameter] public double PerformanceRating { get; set; } = 87.3;
+    [Parameter] public double CurrentOutput { get; set; } = 4.2;
+    [Parameter] public double CapacityFactor { get; set; } = 23.8;
+    [Parameter] public double TargetAchievement { get; set; } = 94.5;
+
+    private string CanvasId = Guid.NewGuid().ToString();
+    private bool _chartInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeChart();
+        }
+    }
+
+    private async Task InitializeChart()
+    {
+        // Sample performance data if no data provided
+        if (!ActualData.Any())
+        {
+            ActualData = new Dictionary<string, double>
+            {
+                { "00:00", 0 }, { "02:00", 0 }, { "04:00", 0 }, { "06:00", 1.2 },
+                { "08:00", 2.8 }, { "10:00", 3.9 }, { "12:00", 4.5 }, { "14:00", 4.2 },
+                { "16:00", 3.1 }, { "18:00", 1.8 }, { "20:00", 0.3 }, { "22:00", 0 }
+            };
+        }
+
+        if (!ExpectedData.Any())
+        {
+            ExpectedData = new Dictionary<string, double>
+            {
+                { "00:00", 0 }, { "02:00", 0 }, { "04:00", 0 }, { "06:00", 1.5 },
+                { "08:00", 3.2 }, { "10:00", 4.3 }, { "12:00", 4.8 }, { "14:00", 4.5 },
+                { "16:00", 3.5 }, { "18:00", 2.1 }, { "20:00", 0.5 }, { "22:00", 0 }
+            };
+        }
+
+        if (!EfficiencyData.Any())
+        {
+            EfficiencyData = new Dictionary<string, double>
+            {
+                { "00:00", 0 }, { "02:00", 0 }, { "04:00", 0 }, { "06:00", 80 },
+                { "08:00", 87.5 }, { "10:00", 90.7 }, { "12:00", 93.8 }, { "14:00", 93.3 },
+                { "16:00", 88.6 }, { "18:00", 85.7 }, { "20:00", 60 }, { "22:00", 0 }
+            };
+        }
+
+        var labels = ActualData.Keys.ToArray();
+
+        try
+        {
+            var config = await JSRuntime.InvokeAsync<object>("chartHelper.getPerformanceChartConfig", 
+                labels, ActualData, ExpectedData, EfficiencyData);
+            
+            _chartInitialized = await JSRuntime.InvokeAsync<bool>("chartHelper.createChart", CanvasId, config);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing performance chart: {ex.Message}");
+        }
+    }
+
+    private string GetPerformanceClass()
+    {
+        if (PerformanceRating >= 90) return "excellent";
+        if (PerformanceRating >= 80) return "good";
+        if (PerformanceRating >= 70) return "average";
+        return "poor";
+    }
+
+    public async Task UpdateChart(Dictionary<string, double> newActualData, Dictionary<string, double> newExpectedData, Dictionary<string, double> newEfficiencyData)
+    {
+        ActualData = newActualData;
+        ExpectedData = newExpectedData;
+        EfficiencyData = newEfficiencyData;
+        
+        if (_chartInitialized)
+        {
+            var labels = ActualData.Keys.ToArray();
+
+            try
+            {
+                var config = await JSRuntime.InvokeAsync<object>("chartHelper.getPerformanceChartConfig", 
+                    labels, ActualData, ExpectedData, EfficiencyData);
+                
+                await JSRuntime.InvokeVoidAsync("chartHelper.updateChart", CanvasId, config);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating performance chart: {ex.Message}");
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_chartInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("chartHelper.destroyChart", CanvasId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disposing performance chart: {ex.Message}");
+            }
+        }
+    }
+}
+
+<style>
+    .performance-chart-container {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        border-radius: 12px;
+        padding: 24px;
+        margin: 20px 0;
+        color: white;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .performance-chart-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 80% 20%, rgba(74, 144, 226, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .chart-header {
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .chart-header h3 {
+        color: #ecf0f1;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .performance-indicator {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+    }
+
+    .indicator-label {
+        color: #bdc3c7;
+        font-size: 0.85rem;
+    }
+
+    .indicator-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .indicator-value.excellent { background: linear-gradient(45deg, #27ae60, #2ecc71); }
+    .indicator-value.good { background: linear-gradient(45deg, #f39c12, #e67e22); }
+    .indicator-value.average { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+    .indicator-value.poor { background: linear-gradient(45deg, #95a5a6, #7f8c8d); }
+
+    .chart-subtitle h4 {
+        color: #ecf0f1;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-icon {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    .description {
+        color: #bdc3c7;
+        font-size: 0.9rem;
+        margin: 0;
+        opacity: 0.8;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 350px;
+        width: 100%;
+        z-index: 1;
+        margin-bottom: 16px;
+    }
+
+    .performance-chart-container canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #ecf0f1;
+    }
+
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .legend-dot.actual { background-color: #3498db; box-shadow: 0 0 8px rgba(52, 152, 219, 0.5); }
+    .legend-dot.expected { background-color: #e74c3c; box-shadow: 0 0 8px rgba(231, 76, 60, 0.5); }
+    .legend-dot.efficiency { background-color: #2ecc71; box-shadow: 0 0 8px rgba(46, 204, 113, 0.5); }
+
+    .performance-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .metric-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .metric-icon {
+        font-size: 2rem;
+        opacity: 0.8;
+    }
+
+    .metric-content h5 {
+        color: #bdc3c7;
+        font-size: 0.85rem;
+        margin: 0 0 4px 0;
+        font-weight: 500;
+    }
+
+    .metric-value {
+        color: #ecf0f1;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 768px) {
+        .performance-chart-container {
+            padding: 16px;
+        }
+        
+        .header-top {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .performance-indicator {
+            align-items: flex-start;
+        }
+        
+        .chart-wrapper {
+            height: 280px;
+        }
+
+        .chart-legend {
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .performance-metrics {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

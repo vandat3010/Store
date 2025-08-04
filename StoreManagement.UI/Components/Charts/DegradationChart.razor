@@ -1,0 +1,453 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="degradation-chart-container">
+    <div class="chart-header">
+        <div class="header-top">
+            <h3>@Title</h3>
+            <div class="degradation-rate">
+                <span class="rate-label">Degradation Rate</span>
+                <div class="rate-value @GetDegradationClass()">
+                    @DegradationRate.ToString("N2")%/year
+                </div>
+            </div>
+        </div>
+        <div class="chart-subtitle">
+            <h4>@Subtitle <span class="info-icon">📉</span></h4>
+            <p class="description">@Description</p>
+        </div>
+    </div>
+    
+    <div class="chart-wrapper">
+        <canvas id="@CanvasId"></canvas>
+    </div>
+    
+    <div class="chart-legend">
+        <div class="legend-item">
+            <span class="legend-dot performance"></span>
+            <span>Performance Ratio</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot trend"></span>
+            <span>Degradation Trend</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot baseline"></span>
+            <span>Expected Baseline</span>
+        </div>
+    </div>
+
+    <div class="degradation-metrics">
+        <div class="metric-card">
+            <div class="metric-icon">📊</div>
+            <div class="metric-content">
+                <h5>Current Performance</h5>
+                <div class="metric-value">@CurrentPerformance.ToString("N1")%</div>
+                <div class="metric-change @GetChangeClass(PerformanceChange)">
+                    @(PerformanceChange >= 0 ? "+" : "")@PerformanceChange.ToString("N2")% vs last month
+                </div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">⏱️</div>
+            <div class="metric-content">
+                <h5>System Age</h5>
+                <div class="metric-value">@SystemAge.ToString("N1") years</div>
+                <div class="metric-info">Installed @InstallationDate.ToString("MMM yyyy")</div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">🎯</div>
+            <div class="metric-content">
+                <h5>Expected Lifetime</h5>
+                <div class="metric-value">@ExpectedLifetime years</div>
+                <div class="metric-info">@RemainingYears.ToString("N1") years remaining</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="degradation-analysis">
+        <div class="analysis-item">
+            <div class="analysis-icon">🔍</div>
+            <div class="analysis-content">
+                <h6>Analysis Summary</h6>
+                <p>@AnalysisSummary</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Degradation Analysis";
+    [Parameter] public string Subtitle { get; set; } = "Performance Degradation Over Time";
+    [Parameter] public string Description { get; set; } = "Long-term performance tracking and degradation rate analysis";
+    [Parameter] public Dictionary<string, double> PerformanceData { get; set; } = new();
+    [Parameter] public Dictionary<string, double> TrendData { get; set; } = new();
+    [Parameter] public Dictionary<string, double> BaselineData { get; set; } = new();
+    [Parameter] public double DegradationRate { get; set; } = 0.45;
+    [Parameter] public double CurrentPerformance { get; set; } = 94.2;
+    [Parameter] public double PerformanceChange { get; set; } = -0.12;
+    [Parameter] public double SystemAge { get; set; } = 3.2;
+    [Parameter] public DateTime InstallationDate { get; set; } = new DateTime(2021, 3, 15);
+    [Parameter] public int ExpectedLifetime { get; set; } = 25;
+    [Parameter] public string AnalysisSummary { get; set; } = "System performance is within expected parameters. Degradation rate is below industry average.";
+
+    private string CanvasId = Guid.NewGuid().ToString();
+    private bool _chartInitialized = false;
+
+    private double RemainingYears => ExpectedLifetime - SystemAge;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeChart();
+        }
+    }
+
+    private async Task InitializeChart()
+    {
+        // Sample degradation data if no data provided
+        if (!PerformanceData.Any())
+        {
+            PerformanceData = new Dictionary<string, double>
+            {
+                { "2021", 100 }, { "2021.5", 99.8 }, { "2022", 99.4 }, { "2022.5", 99.1 },
+                { "2023", 98.7 }, { "2023.5", 98.3 }, { "2024", 97.9 }, { "2024.5", 97.5 }
+            };
+        }
+
+        if (!TrendData.Any())
+        {
+            TrendData = new Dictionary<string, double>
+            {
+                { "2021", 100 }, { "2021.5", 99.7 }, { "2022", 99.4 }, { "2022.5", 99.1 },
+                { "2023", 98.8 }, { "2023.5", 98.5 }, { "2024", 98.2 }, { "2024.5", 97.9 }
+            };
+        }
+
+        if (!BaselineData.Any())
+        {
+            BaselineData = new Dictionary<string, double>
+            {
+                { "2021", 100 }, { "2021.5", 99.6 }, { "2022", 99.2 }, { "2022.5", 98.8 },
+                { "2023", 98.4 }, { "2023.5", 98.0 }, { "2024", 97.6 }, { "2024.5", 97.2 }
+            };
+        }
+
+        var labels = PerformanceData.Keys.ToArray();
+
+        try
+        {
+            var config = await JSRuntime.InvokeAsync<object>("chartHelper.getDegradationChartConfig", 
+                labels, PerformanceData, TrendData, BaselineData);
+            
+            _chartInitialized = await JSRuntime.InvokeAsync<bool>("chartHelper.createChart", CanvasId, config);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing degradation chart: {ex.Message}");
+        }
+    }
+
+    private string GetDegradationClass()
+    {
+        if (DegradationRate <= 0.3) return "excellent";
+        if (DegradationRate <= 0.5) return "good";
+        if (DegradationRate <= 0.7) return "average";
+        return "poor";
+    }
+
+    private string GetChangeClass(double change)
+    {
+        if (change > 0) return "positive";
+        if (change < -0.2) return "negative";
+        return "neutral";
+    }
+
+    public async Task UpdateChart(Dictionary<string, double> newPerformanceData, Dictionary<string, double> newTrendData, Dictionary<string, double> newBaselineData)
+    {
+        PerformanceData = newPerformanceData;
+        TrendData = newTrendData;
+        BaselineData = newBaselineData;
+        
+        if (_chartInitialized)
+        {
+            var labels = PerformanceData.Keys.ToArray();
+
+            try
+            {
+                var config = await JSRuntime.InvokeAsync<object>("chartHelper.getDegradationChartConfig", 
+                    labels, PerformanceData, TrendData, BaselineData);
+                
+                await JSRuntime.InvokeVoidAsync("chartHelper.updateChart", CanvasId, config);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating degradation chart: {ex.Message}");
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_chartInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("chartHelper.destroyChart", CanvasId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disposing degradation chart: {ex.Message}");
+            }
+        }
+    }
+}
+
+<style>
+    .degradation-chart-container {
+        background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+        border-radius: 12px;
+        padding: 24px;
+        margin: 20px 0;
+        color: white;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .degradation-chart-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 70% 30%, rgba(155, 89, 182, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .chart-header {
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .chart-header h3 {
+        color: #ecf0f1;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .degradation-rate {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+    }
+
+    .rate-label {
+        color: #bdc3c7;
+        font-size: 0.85rem;
+    }
+
+    .rate-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .rate-value.excellent { background: linear-gradient(45deg, #27ae60, #2ecc71); }
+    .rate-value.good { background: linear-gradient(45deg, #f39c12, #e67e22); }
+    .rate-value.average { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+    .rate-value.poor { background: linear-gradient(45deg, #95a5a6, #7f8c8d); }
+
+    .chart-subtitle h4 {
+        color: #ecf0f1;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-icon {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    .description {
+        color: #bdc3c7;
+        font-size: 0.9rem;
+        margin: 0;
+        opacity: 0.8;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 320px;
+        width: 100%;
+        z-index: 1;
+        margin-bottom: 16px;
+    }
+
+    .degradation-chart-container canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #ecf0f1;
+    }
+
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .legend-dot.performance { background-color: #3498db; box-shadow: 0 0 8px rgba(52, 152, 219, 0.5); }
+    .legend-dot.trend { background-color: #e74c3c; box-shadow: 0 0 8px rgba(231, 76, 60, 0.5); }
+    .legend-dot.baseline { background-color: #95a5a6; box-shadow: 0 0 8px rgba(149, 165, 166, 0.5); }
+
+    .degradation-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .metric-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .metric-icon {
+        font-size: 1.8rem;
+        opacity: 0.8;
+        margin-top: 4px;
+    }
+
+    .metric-content h5 {
+        color: #bdc3c7;
+        font-size: 0.85rem;
+        margin: 0 0 6px 0;
+        font-weight: 500;
+    }
+
+    .metric-value {
+        color: #ecf0f1;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .metric-change, .metric-info {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .metric-change.positive { color: #2ecc71; }
+    .metric-change.negative { color: #e74c3c; }
+    .metric-change.neutral { color: #f39c12; }
+
+    .degradation-analysis {
+        position: relative;
+        z-index: 1;
+    }
+
+    .analysis-item {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        gap: 12px;
+        border-left: 4px solid #f39c12;
+    }
+
+    .analysis-icon {
+        font-size: 1.5rem;
+        opacity: 0.8;
+    }
+
+    .analysis-content h6 {
+        color: #ecf0f1;
+        font-size: 0.9rem;
+        margin: 0 0 6px 0;
+        font-weight: 600;
+    }
+
+    .analysis-content p {
+        color: #bdc3c7;
+        font-size: 0.85rem;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    @@media (max-width: 768px) {
+        .degradation-chart-container {
+            padding: 16px;
+        }
+        
+        .header-top {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .degradation-rate {
+            align-items: flex-start;
+        }
+        
+        .chart-wrapper {
+            height: 280px;
+        }
+
+        .chart-legend {
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .degradation-metrics {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

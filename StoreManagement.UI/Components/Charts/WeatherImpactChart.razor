@@ -1,0 +1,556 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="weather-chart-container">
+    <div class="chart-header">
+        <div class="header-top">
+            <h3>@Title</h3>
+            <div class="weather-status">
+                <span class="weather-icon">@GetWeatherIcon()</span>
+                <div class="weather-info">
+                    <div class="current-weather">@CurrentWeather</div>
+                    <div class="temperature">@Temperature°C</div>
+                </div>
+            </div>
+        </div>
+        <div class="chart-subtitle">
+            <h4>@Subtitle <span class="info-icon">🌤️</span></h4>
+            <p class="description">@Description</p>
+        </div>
+    </div>
+    
+    <div class="chart-wrapper">
+        <canvas id="@CanvasId"></canvas>
+    </div>
+    
+    <div class="chart-legend">
+        <div class="legend-item">
+            <span class="legend-dot irradiance"></span>
+            <span>Solar Irradiance (W/m²)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot temperature"></span>
+            <span>Temperature (°C)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot output"></span>
+            <span>Power Output (MW)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot efficiency"></span>
+            <span>Efficiency (%)</span>
+        </div>
+    </div>
+
+    <div class="weather-metrics">
+        <div class="metric-card">
+            <div class="metric-icon">☀️</div>
+            <div class="metric-content">
+                <h5>Peak Irradiance</h5>
+                <div class="metric-value">@PeakIrradiance W/m²</div>
+                <div class="metric-info">Today's maximum</div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">🌡️</div>
+            <div class="metric-content">
+                <h5>Optimal Temp Range</h5>
+                <div class="metric-value">@OptimalTempMin-@OptimalTempMax°C</div>
+                <div class="metric-info @GetTempStatusClass()">@GetTempStatus()</div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">☁️</div>
+            <div class="metric-content">
+                <h5>Cloud Coverage</h5>
+                <div class="metric-value">@CloudCoverage%</div>
+                <div class="metric-info">@GetCloudImpact()</div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">💨</div>
+            <div class="metric-content">
+                <h5>Wind Speed</h5>
+                <div class="metric-value">@WindSpeed km/h</div>
+                <div class="metric-info">Cooling effect: @GetWindEffect()</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="weather-forecast">
+        <h5>7-Day Weather Forecast Impact</h5>
+        <div class="forecast-grid">
+            @foreach (var day in WeatherForecast)
+            {
+                <div class="forecast-item">
+                    <div class="forecast-day">@day.Day</div>
+                    <div class="forecast-icon">@GetWeatherIcon(day.Condition)</div>
+                    <div class="forecast-temp">@day.Temperature°C</div>
+                    <div class="forecast-impact @GetImpactClass(day.ExpectedImpact)">
+                        @day.ExpectedImpact.ToString("N0")%
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Weather Impact Analysis";
+    [Parameter] public string Subtitle { get; set; } = "Environmental Factors vs Performance";
+    [Parameter] public string Description { get; set; } = "Real-time correlation between weather conditions and solar output";
+    [Parameter] public Dictionary<string, double> IrradianceData { get; set; } = new();
+    [Parameter] public Dictionary<string, double> TemperatureData { get; set; } = new();
+    [Parameter] public Dictionary<string, double> OutputData { get; set; } = new();
+    [Parameter] public Dictionary<string, double> EfficiencyData { get; set; } = new();
+    [Parameter] public string CurrentWeather { get; set; } = "Partly Cloudy";
+    [Parameter] public double Temperature { get; set; } = 28.5;
+    [Parameter] public int PeakIrradiance { get; set; } = 1050;
+    [Parameter] public int OptimalTempMin { get; set; } = 20;
+    [Parameter] public int OptimalTempMax { get; set; } = 25;
+    [Parameter] public int CloudCoverage { get; set; } = 35;
+    [Parameter] public double WindSpeed { get; set; } = 12.5;
+    [Parameter] public List<WeatherForecastItem> WeatherForecast { get; set; } = new();
+
+    private string CanvasId = Guid.NewGuid().ToString();
+    private bool _chartInitialized = false;
+
+    public class WeatherForecastItem
+    {
+        public string Day { get; set; } = "";
+        public string Condition { get; set; } = "";
+        public int Temperature { get; set; }
+        public double ExpectedImpact { get; set; }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeChart();
+        }
+    }
+
+    private async Task InitializeChart()
+    {
+        // Sample weather data if no data provided
+        if (!IrradianceData.Any())
+        {
+            IrradianceData = new Dictionary<string, double>
+            {
+                { "06:00", 150 }, { "08:00", 450 }, { "10:00", 750 }, { "12:00", 1050 },
+                { "14:00", 980 }, { "16:00", 650 }, { "18:00", 280 }, { "20:00", 50 }
+            };
+        }
+
+        if (!TemperatureData.Any())
+        {
+            TemperatureData = new Dictionary<string, double>
+            {
+                { "06:00", 22 }, { "08:00", 25 }, { "10:00", 28 }, { "12:00", 32 },
+                { "14:00", 35 }, { "16:00", 33 }, { "18:00", 29 }, { "20:00", 26 }
+            };
+        }
+
+        if (!OutputData.Any())
+        {
+            OutputData = new Dictionary<string, double>
+            {
+                { "06:00", 0.8 }, { "08:00", 2.5 }, { "10:00", 4.1 }, { "12:00", 4.8 },
+                { "14:00", 4.2 }, { "16:00", 3.1 }, { "18:00", 1.4 }, { "20:00", 0.3 }
+            };
+        }
+
+        if (!EfficiencyData.Any())
+        {
+            EfficiencyData = new Dictionary<string, double>
+            {
+                { "06:00", 85 }, { "08:00", 92 }, { "10:00", 94 }, { "12:00", 89 },
+                { "14:00", 85 }, { "16:00", 88 }, { "18:00", 90 }, { "20:00", 82 }
+            };
+        }
+
+        if (!WeatherForecast.Any())
+        {
+            WeatherForecast = new List<WeatherForecastItem>
+            {
+                new() { Day = "Mon", Condition = "Sunny", Temperature = 29, ExpectedImpact = 95 },
+                new() { Day = "Tue", Condition = "Partly Cloudy", Temperature = 27, ExpectedImpact = 88 },
+                new() { Day = "Wed", Condition = "Cloudy", Temperature = 25, ExpectedImpact = 75 },
+                new() { Day = "Thu", Condition = "Rainy", Temperature = 23, ExpectedImpact = 45 },
+                new() { Day = "Fri", Condition = "Sunny", Temperature = 31, ExpectedImpact = 92 },
+                new() { Day = "Sat", Condition = "Partly Cloudy", Temperature = 28, ExpectedImpact = 85 },
+                new() { Day = "Sun", Condition = "Sunny", Temperature = 30, ExpectedImpact = 94 }
+            };
+        }
+
+        var labels = IrradianceData.Keys.ToArray();
+
+        try
+        {
+            var config = await JSRuntime.InvokeAsync<object>("chartHelper.getWeatherChartConfig", 
+                labels, IrradianceData, TemperatureData, OutputData, EfficiencyData);
+            
+            _chartInitialized = await JSRuntime.InvokeAsync<bool>("chartHelper.createChart", CanvasId, config);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing weather chart: {ex.Message}");
+        }
+    }
+
+    private string GetWeatherIcon(string condition = "")
+    {
+        var weatherCondition = string.IsNullOrEmpty(condition) ? CurrentWeather : condition;
+        return weatherCondition.ToLower() switch
+        {
+            "sunny" => "☀️",
+            "partly cloudy" => "⛅",
+            "cloudy" => "☁️",
+            "rainy" => "🌧️",
+            "stormy" => "⛈️",
+            _ => "🌤️"
+        };
+    }
+
+    private string GetTempStatus()
+    {
+        if (Temperature >= OptimalTempMin && Temperature <= OptimalTempMax)
+            return "Optimal range";
+        if (Temperature > OptimalTempMax)
+            return $"Above optimal (+{Temperature - OptimalTempMax:N1}°C)";
+        return $"Below optimal ({OptimalTempMin - Temperature:N1}°C)";
+    }
+
+    private string GetTempStatusClass()
+    {
+        if (Temperature >= OptimalTempMin && Temperature <= OptimalTempMax)
+            return "optimal";
+        return "suboptimal";
+    }
+
+    private string GetCloudImpact()
+    {
+        return CloudCoverage switch
+        {
+            <= 20 => "Minimal impact",
+            <= 50 => "Moderate impact",
+            <= 80 => "Significant impact",
+            _ => "Major impact"
+        };
+    }
+
+    private string GetWindEffect()
+    {
+        return WindSpeed switch
+        {
+            <= 5 => "Low",
+            <= 15 => "Moderate",
+            <= 25 => "Good",
+            _ => "High"
+        };
+    }
+
+    private string GetImpactClass(double impact)
+    {
+        return impact switch
+        {
+            >= 90 => "excellent",
+            >= 80 => "good",
+            >= 60 => "average",
+            _ => "poor"
+        };
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_chartInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("chartHelper.destroyChart", CanvasId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disposing weather chart: {ex.Message}");
+            }
+        }
+    }
+}
+
+<style>
+    .weather-chart-container {
+        background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%);
+        border-radius: 12px;
+        padding: 24px;
+        margin: 20px 0;
+        color: white;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .weather-chart-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 30% 40%, rgba(26, 188, 156, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .chart-header {
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .chart-header h3 {
+        color: #ecf0f1;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .weather-status {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .weather-icon {
+        font-size: 2rem;
+    }
+
+    .weather-info {
+        text-align: right;
+    }
+
+    .current-weather {
+        color: #ecf0f1;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .temperature {
+        color: #ecf0f1;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .chart-subtitle h4 {
+        color: #ecf0f1;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-icon {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    .description {
+        color: #bdc3c7;
+        font-size: 0.9rem;
+        margin: 0;
+        opacity: 0.8;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 300px;
+        width: 100%;
+        z-index: 1;
+        margin-bottom: 16px;
+    }
+
+    .weather-chart-container canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        color: #ecf0f1;
+    }
+
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .legend-dot.irradiance { background-color: #f39c12; box-shadow: 0 0 6px rgba(243, 156, 18, 0.5); }
+    .legend-dot.temperature { background-color: #e74c3c; box-shadow: 0 0 6px rgba(231, 76, 60, 0.5); }
+    .legend-dot.output { background-color: #3498db; box-shadow: 0 0 6px rgba(52, 152, 219, 0.5); }
+    .legend-dot.efficiency { background-color: #2ecc71; box-shadow: 0 0 6px rgba(46, 204, 113, 0.5); }
+
+    .weather-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .metric-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 14px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .metric-icon {
+        font-size: 1.6rem;
+        opacity: 0.8;
+        margin-top: 2px;
+    }
+
+    .metric-content h5 {
+        color: #bdc3c7;
+        font-size: 0.8rem;
+        margin: 0 0 4px 0;
+        font-weight: 500;
+    }
+
+    .metric-value {
+        color: #ecf0f1;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    .metric-info {
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+
+    .metric-info.optimal { color: #2ecc71; }
+    .metric-info.suboptimal { color: #f39c12; }
+
+    .weather-forecast {
+        position: relative;
+        z-index: 1;
+    }
+
+    .weather-forecast h5 {
+        color: #ecf0f1;
+        font-size: 1rem;
+        margin: 0 0 16px 0;
+        font-weight: 600;
+    }
+
+    .forecast-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 12px;
+    }
+
+    .forecast-item {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 12px 8px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .forecast-day {
+        color: #bdc3c7;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .forecast-icon {
+        font-size: 1.5rem;
+        margin-bottom: 6px;
+    }
+
+    .forecast-temp {
+        color: #ecf0f1;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    .forecast-impact {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 10px;
+    }
+
+    .forecast-impact.excellent { background: rgba(46, 204, 113, 0.3); color: #2ecc71; }
+    .forecast-impact.good { background: rgba(243, 156, 18, 0.3); color: #f39c12; }
+    .forecast-impact.average { background: rgba(231, 76, 60, 0.3); color: #e74c3c; }
+    .forecast-impact.poor { background: rgba(149, 165, 166, 0.3); color: #95a5a6; }
+
+    @@media (max-width: 768px) {
+        .weather-chart-container {
+            padding: 16px;
+        }
+        
+        .header-top {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .weather-status {
+            align-self: flex-end;
+        }
+        
+        .chart-wrapper {
+            height: 250px;
+        }
+
+        .chart-legend {
+            gap: 12px;
+        }
+
+        .weather-metrics {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .forecast-grid {
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 8px;
+        }
+    }
+</style>

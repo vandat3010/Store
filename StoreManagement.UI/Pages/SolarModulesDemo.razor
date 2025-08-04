@@ -1,0 +1,317 @@
+@page "/solar-modules-demo"
+@using StoreManagement.UI.Components.Charts
+
+<PageTitle>Solar Modules Chart Demo</PageTitle>
+
+<div class="demo-container">
+    <div class="demo-header">
+        <h1>Solar Modules Chart Demo</h1>
+        <p>Demonstration of the Solar Modules inventory chart component</p>
+    </div>
+
+    <div class="demo-content">
+        <SolarModulesChart 
+            Title="Solar Modules"
+            Description="Inventory of solar modules - A single photovoltaic Module/Panel is an assembly of connected solar cells"
+            ChartTitle="Histogram of Module Brands"
+            ChartSubtitle="Shows the distribution of module brands"
+            ModuleData="@moduleData"
+            TotalCapacity="125.8" />
+
+        <div class="demo-controls">
+            <h3>Chart Controls</h3>
+            <div class="control-buttons">
+                <button class="btn btn-primary" @onclick="LoadSampleData1">Load Sample Data 1</button>
+                <button class="btn btn-secondary" @onclick="LoadSampleData2">Load Sample Data 2</button>
+                <button class="btn btn-success" @onclick="LoadRandomData">Generate Random Data</button>
+                <button class="btn btn-info" @onclick="AddNewBrand">Add New Brand</button>
+            </div>
+        </div>
+
+        <div class="data-display">
+            <h4>Current Data</h4>
+            <div class="data-table">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Brand</th>
+                            <th>Module Count</th>
+                            <th>Market Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in moduleData.OrderByDescending(x => x.Value))
+                        {
+                            <tr>
+                                <td>@item.Key</td>
+                                <td>@item.Value.ToString("N0")</td>
+                                <td>@((item.Value / (double)moduleData.Values.Sum() * 100).ToString("N1"))%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Dictionary<string, int> moduleData = new();
+    private SolarModulesChart? chartComponent;
+    private Random random = new Random();
+
+    protected override void OnInitialized()
+    {
+        LoadSampleData1();
+    }
+
+    private void LoadSampleData1()
+    {
+        moduleData = new Dictionary<string, int>
+        {
+            { "Trina Solar", 320000 },
+            { "Jinko Solar", 180000 },
+            { "HT-SAAE Solar", 85000 },
+            { "LONGi Solar", 45000 },
+            { "Talesun", 25000 },
+            { "JA Solar", 22000 },
+            { "GCL", 8000 },
+            { "AE SOLAR", 6000 },
+            { "AXTEC", 3000 }
+        };
+        StateHasChanged();
+    }
+
+    private void LoadSampleData2()
+    {
+        moduleData = new Dictionary<string, int>
+        {
+            { "Canadian Solar", 280000 },
+            { "First Solar", 220000 },
+            { "Hanwha Q CELLS", 150000 },
+            { "SunPower", 120000 },
+            { "Risen Energy", 95000 },
+            { "Yingli Solar", 70000 },
+            { "Suntech", 45000 },
+            { "Kyocera", 30000 },
+            { "Sharp Solar", 25000 },
+            { "REC Solar", 18000 }
+        };
+        StateHasChanged();
+    }
+
+    private void LoadRandomData()
+    {
+        var brands = new[]
+        {
+            "Trina Solar", "Jinko Solar", "Canadian Solar", "First Solar",
+            "Hanwha Q CELLS", "LONGi Solar", "JA Solar", "Risen Energy",
+            "SunPower", "Yingli Solar", "Suntech", "GCL", "AE SOLAR",
+            "AXTEC", "Kyocera", "Sharp Solar", "REC Solar", "Solaria"
+        };
+
+        moduleData = new Dictionary<string, int>();
+        var selectedBrands = brands.OrderBy(x => random.Next()).Take(random.Next(6, 12));
+
+        foreach (var brand in selectedBrands)
+        {
+            moduleData[brand] = random.Next(5000, 350000);
+        }
+
+        StateHasChanged();
+    }
+
+    private void AddNewBrand()
+    {
+        var newBrands = new[]
+        {
+            "Tesla Solar", "LG Solar", "Panasonic", "Solaria", "SolarEdge",
+            "Enphase", "Maxeon Solar", "Meyer Burger", "Oxford PV"
+        };
+
+        var availableBrands = newBrands.Where(b => !moduleData.ContainsKey(b)).ToArray();
+        
+        if (availableBrands.Any())
+        {
+            var newBrand = availableBrands[random.Next(availableBrands.Length)];
+            moduleData[newBrand] = random.Next(10000, 100000);
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+    .demo-container {
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .demo-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+    }
+
+    .demo-header h1 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .demo-header p {
+        color: #6c757d;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .demo-content {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .demo-controls {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e9ecef;
+    }
+
+    .demo-controls h3 {
+        color: #2c3e50;
+        margin-bottom: 16px;
+        font-weight: 600;
+    }
+
+    .control-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #545b62;
+        transform: translateY(-1px);
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background-color: #1e7e34;
+        transform: translateY(-1px);
+    }
+
+    .btn-info {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background-color: #117a8b;
+        transform: translateY(-1px);
+    }
+
+    .data-display {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e9ecef;
+    }
+
+    .data-display h4 {
+        color: #2c3e50;
+        margin-bottom: 16px;
+        font-weight: 600;
+    }
+
+    .data-table {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: collapse;
+    }
+
+    .table th,
+    .table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    @@media (max-width: 768px) {
+        .demo-container {
+            padding: 10px;
+        }
+
+        .control-buttons {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .demo-header {
+            padding: 15px;
+        }
+
+        .demo-controls,
+        .data-display {
+            padding: 16px;
+        }
+    }
+</style>

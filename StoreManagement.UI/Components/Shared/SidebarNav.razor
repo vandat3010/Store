@@ -1,0 +1,127 @@
+﻿<div class="netzero-sidebar @(IsCollapsed ? "collapsed" : "")">
+    <!-- Logo -->
+    <div class="sidebar-header">
+        <div class="logo">
+            <span class="logo-text">NetZeroOS</span>
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <NavLink href="/" class="nav-item" @onclick="@(() => SetActiveRoute("/"))">
+                <div class="nav-icon">
+                    <i class="fas fa-solar-panel"></i>
+                </div>
+                <span class="nav-text">Solar</span>
+                <div class="nav-indicator"></div>
+            </NavLink>
+
+            <div class="nav-item expandable @(IsAnalysisExpanded ? "expanded" : "")" @onclick="ToggleAnalysis">
+                <div class="nav-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <span class="nav-text">Analysis</span>
+                <div class="nav-arrow">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <div class="nav-item expandable @(IsPerformanceExpanded ? "expanded" : "")" @onclick="TogglePerformance">
+                <div class="nav-icon">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <span class="nav-text">Performance</span>
+                <div class="nav-arrow">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <div class="nav-item expandable @(IsReportsExpanded ? "expanded" : "")" @onclick="ToggleReports">
+                <div class="nav-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <span class="nav-text">Reports</span>
+                <div class="nav-arrow">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <div class="nav-item expandable @(IsHardwareExpanded ? "expanded" : "")" @onclick="ToggleHardware">
+                <div class="nav-icon">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <span class="nav-text">Hardware</span>
+                <div class="nav-arrow">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <NavLink href="/cases" class="nav-item" @onclick="@(() => SetActiveRoute("/cases"))">
+                <div class="nav-icon">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <span class="nav-text">Cases</span>
+                <div class="nav-indicator"></div>
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@code {
+    [Parameter] public bool IsCollapsed { get; set; }
+
+    private string activeRoute = "/";
+    private bool IsAnalysisExpanded = false;
+    private bool IsPerformanceExpanded = false;
+    private bool IsReportsExpanded = false;
+    private bool IsHardwareExpanded = false;
+
+    private bool IsActiveRoute(string route) => activeRoute == route;
+
+    private void SetActiveRoute(string route)
+    {
+        activeRoute = route;
+        // Collapse all expandable menus when navigating to a direct route
+        IsAnalysisExpanded = false;
+        IsPerformanceExpanded = false;
+        IsReportsExpanded = false;
+        IsHardwareExpanded = false;
+    }
+
+    private void ToggleAnalysis()
+    {
+        IsAnalysisExpanded = !IsAnalysisExpanded;
+        // Close other expanded menus
+        IsPerformanceExpanded = false;
+        IsReportsExpanded = false;
+        IsHardwareExpanded = false;
+    }
+
+    private void TogglePerformance()
+    {
+        IsPerformanceExpanded = !IsPerformanceExpanded;
+        // Close other expanded menus
+        IsAnalysisExpanded = false;
+        IsReportsExpanded = false;
+        IsHardwareExpanded = false;
+    }
+
+    private void ToggleReports()
+    {
+        IsReportsExpanded = !IsReportsExpanded;
+        // Close other expanded menus
+        IsAnalysisExpanded = false;
+        IsPerformanceExpanded = false;
+        IsHardwareExpanded = false;
+    }
+
+    private void ToggleHardware()
+    {
+        IsHardwareExpanded = !IsHardwareExpanded;
+        // Close other expanded menus
+        IsAnalysisExpanded = false;
+        IsPerformanceExpanded = false;
+        IsReportsExpanded = false;
+    }
+}

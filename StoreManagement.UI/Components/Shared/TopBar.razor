@@ -1,0 +1,89 @@
+﻿@inject IJSRuntime JS
+
+<div class="netzero-topbar">
+    <div class="topbar-left">
+        <!-- Connected Inverter Info -->
+        <div class="inverter-info">
+            <div class="inverter-label">Connected Inverter(s)</div>
+            <div class="inverter-value">
+                <span class="inverter-brand">Huawei</span>
+                <span class="inverter-count">x 14</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="topbar-right">
+        <!-- Devices & Meta Button -->
+        <button class="devices-meta-btn">
+            <i class="fas fa-cog"></i>
+            <span>Devices & Meta</span>
+        </button>
+
+        <!-- Theme Switch -->
+        <div class="theme-switch">
+            <button class="theme-btn @(!IsDark ? "active" : "")" @onclick="() => ChangeTheme(false)">
+                Light
+            </button>
+            <button class="theme-btn @(IsDark ? "active" : "")" @onclick="() => ChangeTheme(true)">
+                Dark
+            </button>
+        </div>
+
+        <!-- Language Switch -->
+        <div class="language-switch">
+            <i class="fas fa-globe"></i>
+            <select @bind="CurrentLanguage">
+                <option value="en">EN</option>
+                <option value="vi">VI</option>
+            </select>
+        </div>
+
+        <!-- User Info -->
+        <div class="user-info" @onclick="ToggleUserMenu">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <span class="user-name">@UserName</span>
+            <i class="fas fa-chevron-down"></i>
+
+            @if (ShowUserMenu)
+            {
+                <div class="user-dropdown">
+                    <button class="dropdown-item" @onclick="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsDark { get; set; }
+
+    [Parameter]
+    public EventCallback OnToggleTheme { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnThemeChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnToggleSidebar { get; set; }
+
+    private string CurrentLanguage = "en";
+    private string UserName = "Huynh Minh Khoi";
+    private bool ShowUserMenu = false;
+
+    private void ToggleUserMenu() => ShowUserMenu = !ShowUserMenu;
+
+    private void Logout() => Console.WriteLine("Logged out");
+
+    private async Task ChangeTheme(bool dark)
+    {
+        IsDark = dark;
+        await JS.InvokeVoidAsync("setTheme", IsDark);
+        await OnThemeChanged.InvokeAsync(IsDark);
+    }
+}

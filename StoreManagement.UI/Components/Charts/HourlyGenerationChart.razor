@@ -1,0 +1,287 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="hourly-generation-container">
+    <div class="chart-header">
+        <div class="header-top">
+            <h3>@Title</h3>
+            <div class="date-info">
+                <span class="date-label">📅 Date range selected:</span>
+                <span class="date-range">@DateRange</span>
+            </div>
+        </div>
+        <div class="chart-subtitle">
+            <h4>@Subtitle <span class="info-icon">ℹ️</span></h4>
+            <p class="description">@Description</p>
+        </div>
+    </div>
+    
+    <div class="chart-wrapper">
+        <canvas id="@CanvasId"></canvas>
+    </div>
+    
+    <div class="chart-legend">
+        <div class="legend-item">
+            <span class="legend-dot generation"></span>
+            <span>@LegendLabel</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Hourly Generation Profile";
+    [Parameter] public string Subtitle { get; set; } = "Real-time Intraday Hourly Generation";
+    [Parameter] public string Description { get; set; } = "Solar AC Energy Output within the day - Till Today";
+    [Parameter] public string DateRange { get; set; } = "Sunday 6 April 2025 to Saturday 12 April 2025";
+    [Parameter] public string LegendLabel { get; set; } = "Energy Generated (kWh)";
+    [Parameter] public Dictionary<string, List<double>> Data { get; set; } = new();
+
+    private string CanvasId = Guid.NewGuid().ToString();
+    private bool _chartInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeChart();
+        }
+    }
+
+    private async Task InitializeChart()
+    {
+        // Sample hourly generation data if no data provided
+        if (!Data.Any())
+        {
+            Data = new Dictionary<string, List<double>>
+            {
+                { "Apr 06", GenerateHourlyData(500) },
+                { "Apr 07", GenerateHourlyData(520) },
+                { "Apr 08", GenerateHourlyData(480) },
+                { "Apr 09", GenerateHourlyData(460) },
+                { "Apr 10", GenerateHourlyData(490) },
+                { "Apr 11", GenerateHourlyData(300) },
+                { "Apr 12", GenerateHourlyData(510) }
+            };
+        }
+
+        try
+        {
+            var config = await JSRuntime.InvokeAsync<object>("chartHelper.getHourlyGenerationChartConfig", 
+                Data, LegendLabel);
+            
+            _chartInitialized = await JSRuntime.InvokeAsync<bool>("chartHelper.createChart", CanvasId, config);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing hourly generation chart: {ex.Message}");
+        }
+    }
+
+    private List<double> GenerateHourlyData(double maxValue)
+    {
+        var data = new List<double>();
+        var random = new Random();
+        
+        // Generate 24 hours of data with solar pattern (peak around noon)
+        for (int hour = 0; hour < 24; hour++)
+        {
+            double value = 0;
+            
+            // Solar generation pattern: 6 AM to 6 PM
+            if (hour >= 6 && hour <= 18)
+            {
+                // Bell curve pattern with peak at noon
+                double normalizedHour = (hour - 12.0) / 6.0; // -1 to 1
+                double bellCurve = Math.Exp(-normalizedHour * normalizedHour * 2);
+                value = maxValue * bellCurve * (0.8 + random.NextDouble() * 0.4); // Add some randomness
+            }
+            
+            data.Add(Math.Round(value, 1));
+        }
+        
+        return data;
+    }
+
+    public async Task UpdateChart(Dictionary<string, List<double>> newData)
+    {
+        Data = newData;
+        
+        if (_chartInitialized)
+        {
+            try
+            {
+                var config = await JSRuntime.InvokeAsync<object>("chartHelper.getHourlyGenerationChartConfig", 
+                    Data, LegendLabel);
+                
+                await JSRuntime.InvokeVoidAsync("chartHelper.updateChart", CanvasId, config);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating hourly generation chart: {ex.Message}");
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_chartInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("chartHelper.destroyChart", CanvasId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disposing hourly generation chart: {ex.Message}");
+            }
+        }
+    }
+}
+
+<style>
+    .hourly-generation-container {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 24px;
+        margin: 20px 0;
+        color: white;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hourly-generation-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(255, 152, 0, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .chart-header {
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .chart-header h3 {
+        color: #ecf0f1;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .date-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        font-size: 0.85rem;
+    }
+
+    .date-label {
+        color: #bdc3c7;
+        margin-bottom: 4px;
+    }
+
+    .date-range {
+        color: #ecf0f1;
+        font-weight: 500;
+    }
+
+    .chart-subtitle h4 {
+        color: #ecf0f1;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-icon {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    .description {
+        color: #bdc3c7;
+        font-size: 0.9rem;
+        margin: 0;
+        opacity: 0.8;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 350px;
+        width: 100%;
+        z-index: 1;
+        margin-bottom: 16px;
+    }
+
+    .hourly-generation-container canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        color: #ecf0f1;
+    }
+
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .legend-dot.generation {
+        background-color: #ff9800;
+        box-shadow: 0 0 8px rgba(255, 152, 0, 0.5);
+    }
+
+    @@media (max-width: 768px) {
+        .hourly-generation-container {
+            padding: 16px;
+        }
+        
+        .header-top {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .date-info {
+            align-items: flex-start;
+        }
+        
+        .chart-wrapper {
+            height: 280px;
+        }
+    }
+</style>

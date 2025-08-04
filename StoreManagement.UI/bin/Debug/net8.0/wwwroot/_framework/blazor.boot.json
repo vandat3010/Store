@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "StoreManagement.UI",
   "resources": {
-    "hash": "sha256-9YWxbqVQ3l6IdbhjrcytHbopJzRGaKJYi1+Mr+fv44Y=",
+    "hash": "sha256-xnEwpFq1w1KfyNFsQmMVEb3P9LvHUaYF07V6/1p5E3E=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-1QpKPnxEuRCElzcp+e3MrovJeAJkuzqKmRQay/6Aa08="
     },
@@ -209,10 +209,10 @@
       "mscorlib.wasm": "sha256-UnQd0YPXNpwbXsKqO8RAqgUVuwZsSpprfAIPpdV/y1Q=",
       "netstandard.wasm": "sha256-/QbD8JDZyYwfyk89W3qJL3HTAINDCVziZIySHIZcDhw=",
       "System.Private.CoreLib.wasm": "sha256-oBqNgH7R24FqGbaL3XnfQDqn3rk28jERFosgAryKT6U=",
-      "StoreManagement.UI.wasm": "sha256-wjXgy/1CoR4qMcqemIoK90e4asNGgpMcqps+ZZ213nU="
+      "StoreManagement.UI.wasm": "sha256-x+JTw33hpfeDL038JPH4hZJbZ6GtFVEM2LxmVXz2/WA="
     },
     "pdb": {
-      "StoreManagement.UI.pdb": "sha256-ADPBvAAAGpcf2O1ojvG4qbkMJ38JWepnLXtRZUCtNaU="
+      "StoreManagement.UI.pdb": "sha256-V+oqPZKd2fUENrZbYuYaTCrJ14gL18WJ6gxnp4OqZEc="
     }
   },
   "cacheBootResources": true,

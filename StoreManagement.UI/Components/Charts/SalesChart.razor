@@ -1,0 +1,114 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="chart-container">
+    <h3>@Title</h3>
+    <canvas id="@CanvasId" width="400" height="200"></canvas>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Sales Chart";
+    [Parameter] public Dictionary<string, double> Data { get; set; } = new();
+
+    private string CanvasId = Guid.NewGuid().ToString();
+    private bool _chartInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeChart();
+        }
+    }
+
+    private async Task InitializeChart()
+    {
+        // Add sample data if no data provided
+        if (!Data.Any())
+        {
+            Data = new Dictionary<string, double>
+            {
+                { "January", 1200 },
+                { "February", 1900 },
+                { "March", 3000 },
+                { "April", 5000 },
+                { "May", 2000 },
+                { "June", 3000 }
+            };
+        }
+
+        var labels = Data.Keys.ToArray();
+        var values = Data.Values.ToArray();
+
+        try
+        {
+            var config = await JSRuntime.InvokeAsync<object>("chartHelper.getBarChartConfig",
+                labels, values, "Sales ($)", null);
+
+            _chartInitialized = await JSRuntime.InvokeAsync<bool>("chartHelper.createChart", CanvasId, config);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing chart: {ex.Message}");
+        }
+    }
+
+    public async Task UpdateChart(Dictionary<string, double> newData)
+    {
+        Data = newData;
+
+        if (_chartInitialized)
+        {
+            var labels = Data.Keys.ToArray();
+            var values = Data.Values.ToArray();
+
+            try
+            {
+                var config = await JSRuntime.InvokeAsync<object>("chartHelper.getBarChartConfig",
+                    labels, values, "Sales ($)", null);
+
+                await JSRuntime.InvokeVoidAsync("chartHelper.updateChart", CanvasId, config);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating chart: {ex.Message}");
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_chartInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("chartHelper.destroyChart", CanvasId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disposing chart: {ex.Message}");
+            }
+        }
+    }
+}
+
+<style>
+    .chart-container {
+        padding: 20px;
+        margin: 20px 0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fff;
+    }
+
+    .chart-container h3 {
+        margin-bottom: 15px;
+        color: #333;
+        text-align: center;
+    }
+
+    .chart-container canvas {
+        max-width: 100%;
+        height: auto;
+    }
+</style>

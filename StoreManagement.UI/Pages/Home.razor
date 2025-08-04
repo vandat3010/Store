@@ -1,7 +1,333 @@
 ﻿@page "/"
+@using StoreManagement.UI.Components.Shared
+@using StoreManagement.UI.Components.Charts
+@inject IJSRuntime JSRuntime
 
-<PageTitle>Home</PageTitle>
+<PageTitle>NetZeroOS - Solar Dashboard</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="netzero-dashboard">
+    <!-- Top Section: Connected Inverter and Devices & Meta -->
+    <div class="top-section">
+        <div class="connected-inverter">
+            <div class="inverter-count">Connected Inverter(s)</div>
+            <div class="inverter-model">Huawei x 14</div>
+        </div>
+        <button class="devices-meta-btn">
+            🔧 Devices & Meta
+        </button>
+    </div>
 
-Welcome to your new app.
+    <!-- Performance Section -->
+    <div class="performance-section">
+        <div class="performance-metrics">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Performance</div>
+                        <div class="card-subtitle">📅 Tuesday 1 April 2025 to Thursday 10 April 2025</div>
+                    </div>
+                </div>
+
+                <div class="performance-ratio">
+                    <div class="metric-value">75.06<span class="metric-unit">%</span></div>
+                    <div class="performance-change">
+                        <span class="change-indicator negative">📉 -5.94% from Expected PR</span>
+                    </div>
+                </div>
+
+                <div class="specific-yield">
+                    <div class="metric-label">Specific Yield ⚡</div>
+                    <div class="metric-subtitle">Specific Yield (SY) across the selected time period</div>
+                    <div class="metric-value">34.94 <span class="metric-unit">kWh/kWp</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Irradiance vs Specific Yield Correlation ⚡</div>
+                    <div class="card-subtitle">Relationship between Irradiance and Specific Yield (SY)</div>
+                </div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="performanceChart"></canvas>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-color primary"></div>
+                    <span>Specific Yield (kWh/kWp)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color secondary"></div>
+                    <span>Irradiance (W/m²)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generation Section -->
+    <div class="generation-section">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Generation</div>
+                    <div class="card-subtitle">📅 Tuesday 1 April 2025 to Thursday 10 April 2025</div>
+                </div>
+            </div>
+
+            <div class="generation-metrics">
+                <div class="metric-card">
+                    <div class="metric-label">Daily Generation ⚡</div>
+                    <div class="metric-subtitle">Total daily energy output</div>
+                    <div class="metric-value">1,234.56 <span class="metric-unit">kWh</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeChart();
+        }
+    }
+
+    private async Task InitializeChart()
+    {
+        var chartData = new
+        {
+            labels = new[] { "Apr 01", "Apr 02", "Apr 03", "Apr 04", "Apr 05", "Apr 06", "Apr 07", "Apr 08", "Apr 09", "Apr 10" },
+            datasets = new[]
+            {
+                new
+                {
+                    label = "Specific Yield (kWh/kWp)",
+                    data = new[] { 3.15, 4.2, 4.8, 4.5, 4.9, 5.1, 5.3, 4.7, 3.8, 5.0 },
+                    borderColor = "rgb(0, 212, 170)",
+                    backgroundColor = "rgba(0, 212, 170, 0.1)",
+                    yAxisID = "y"
+                },
+                new
+                {
+                    label = "Irradiance (W/m²)",
+                    data = new[] { 4.55, 5.2, 5.8, 5.5, 5.9, 6.1, 6.3, 5.7, 4.8, 6.0 },
+                    borderColor = "rgb(74, 144, 226)",
+                    backgroundColor = "rgba(74, 144, 226, 0.1)",
+                    yAxisID = "y1"
+                }
+            }
+        };
+
+        await JSRuntime.InvokeVoidAsync("createPerformanceChart", "performanceChart", chartData);
+    }
+
+}
+
+<style>
+    .netzero-dashboard {
+        padding: 0;
+        background: var(--primary-bg);
+        min-height: 100vh;
+    }
+
+    .top-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        gap: 20px;
+    }
+
+    .connected-inverter {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .connected-inverter::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent-color), var(--chart-secondary));
+    }
+
+    .inverter-count {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+
+    .inverter-model {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .devices-meta-btn {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .devices-meta-btn:hover {
+        background: var(--accent-hover);
+        transform: translateY(-2px);
+    }
+
+    .performance-section {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .performance-metrics .card {
+        height: 100%;
+    }
+
+    .performance-ratio {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .performance-ratio .metric-value {
+        font-size: 48px;
+        font-weight: 700;
+        color: var(--accent-color);
+    }
+
+    .performance-ratio .metric-unit {
+        font-size: 24px;
+        color: var(--text-muted);
+    }
+
+    .performance-change {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 12px;
+    }
+
+    .change-indicator {
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    .change-indicator.negative {
+        background: rgba(225, 112, 85, 0.2);
+        color: var(--danger-color);
+    }
+
+    .specific-yield {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .specific-yield .metric-value {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--accent-color);
+    }
+
+    .specific-yield .metric-unit {
+        font-size: 18px;
+        color: var(--text-muted);
+    }
+
+    .metric-label {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+
+    .metric-subtitle {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 300px;
+        margin: 20px 0;
+    }
+
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        margin-top: 16px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+    }
+
+    .legend-color.primary {
+        background: var(--chart-primary);
+    }
+
+    .legend-color.secondary {
+        background: var(--chart-secondary);
+    }
+
+    .generation-section {
+        margin-top: 24px;
+    }
+
+    .generation-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    @@media (max-width: 768px) {
+        .performance-section {
+            grid-template-columns: 1fr;
+        }
+
+        .top-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .connected-inverter {
+            max-width: none;
+        }
+    }
+</style>

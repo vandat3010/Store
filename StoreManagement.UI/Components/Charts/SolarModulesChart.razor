@@ -1,0 +1,192 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+
+<div class="solar-modules-chart-container">
+    <div class="chart-header">
+        <div class="chart-title-section">
+            <h3 class="chart-title">@Title</h3>
+            <p class="chart-subtitle">@Subtitle</p>
+        </div>
+        <div class="chart-description">
+            <h4 class="description-title">@Description</h4>
+            <p class="description-subtitle">@SubDescription</p>
+        </div>
+    </div>
+    
+    <div class="chart-content">
+        <canvas id="solarModulesChart" width="800" height="400"></canvas>
+    </div>
+    
+    <div class="chart-legend">
+        <div class="legend-item">
+            <span class="legend-color" style="background-color: #00d4aa;"></span>
+            <span class="legend-text">Module count</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public string SubDescription { get; set; } = "";
+    [Parameter] public Dictionary<string, int> ModuleData { get; set; } = new();
+
+    private bool isInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !isInitialized)
+        {
+            try
+            {
+                await InitializeChart();
+                isInitialized = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing Solar Modules chart: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task InitializeChart()
+    {
+        if (ModuleData.Any())
+        {
+            var labels = ModuleData.Keys.ToArray();
+            var data = ModuleData.Values.ToArray();
+
+            await JSRuntime.InvokeVoidAsync("chartHelper.createSolarModulesChart", "solarModulesChart", labels, data);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("chartHelper.destroyChart", "solarModulesChart");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error disposing Solar Modules chart: {ex.Message}");
+        }
+    }
+}
+
+<style>
+    .solar-modules-chart-container {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 25px;
+        color: white;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+
+    .chart-title-section {
+        flex: 1;
+        min-width: 300px;
+    }
+
+    .chart-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        color: #ffffff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .chart-subtitle {
+        font-size: 0.9rem;
+        color: #bdc3c7;
+        margin: 0;
+        line-height: 1.4;
+        max-width: 500px;
+    }
+
+    .chart-description {
+        text-align: right;
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .description-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 5px 0;
+        color: #00d4aa;
+    }
+
+    .description-subtitle {
+        font-size: 0.85rem;
+        color: #95a5a6;
+        margin: 0;
+    }
+
+    .chart-content {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        display: inline-block;
+    }
+
+    .legend-text {
+        font-size: 0.9rem;
+        color: #ecf0f1;
+        font-weight: 500;
+    }
+
+    @@media (max-width: 768px) {
+        .chart-header {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chart-description {
+            text-align: left;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+        }
+
+        .chart-content {
+            padding: 15px;
+        }
+
+        .solar-modules-chart-container {
+            padding: 20px;
+        }
+    }
+</style>

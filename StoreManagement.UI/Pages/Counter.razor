@@ -1,18 +1,10 @@
-﻿@page "/counter"
+﻿@using StoreManagement.UI.Components.Shared
+<CardPanel Title="Hourly Generation Profile" SubTitle="Date: April 6 - April 12, 2025">
+    <!-- Nhúng chart ở đây -->
+    @* <EnergyChart /> *@
+</CardPanel>
 
-<PageTitle>Counter</PageTitle>
-
-<h1>Counter</h1>
-
-<p role="status">Current count: @currentCount</p>
-
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
-
-@code {
-    private int currentCount = 0;
-
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
+<CardPanel Title="Loss Summary" SubTitle="Date: April 1 - April 11, 2025">
+    <!-- Nhúng chart khác -->
+    @* <LossChart /> *@
+</CardPanel>

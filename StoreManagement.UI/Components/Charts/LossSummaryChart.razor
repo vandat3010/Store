@@ -1,0 +1,380 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="loss-summary-container">
+    <div class="chart-header">
+        <div class="header-top">
+            <h3>@Title</h3>
+            <div class="date-info">
+                <span class="date-label">📅 Date range selected:</span>
+                <span class="date-range">@DateRange</span>
+            </div>
+        </div>
+        <div class="chart-subtitle">
+            <h4>@Subtitle <span class="info-icon">ℹ️</span></h4>
+            <p class="description">@Description</p>
+        </div>
+    </div>
+    
+    <div class="chart-wrapper">
+        <canvas id="@CanvasId"></canvas>
+    </div>
+    
+    <div class="chart-legend">
+        <div class="legend-item">
+            <span class="legend-dot soiling"></span>
+            <span>Soiling Loss</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot shading"></span>
+            <span>Shading Loss</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot downtime"></span>
+            <span>Downtime Loss</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot thermal"></span>
+            <span>Thermal Loss</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot inverter"></span>
+            <span>Inverter Loss</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot clipping"></span>
+            <span>Clipping Loss</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot curtailment"></span>
+            <span>Curtailment Loss</span>
+        </div>
+    </div>
+
+    <div class="breakdown-section">
+        <h4>Breakdown & Allocation <span class="info-icon">ℹ️</span></h4>
+        <p class="breakdown-description">Distribution of various types of energy losses</p>
+        
+        <div class="breakdown-cards">
+            <div class="breakdown-card">
+                <h5>Soiling Loss (kWh)</h5>
+                <div class="breakdown-value">@SoilingLoss.ToString("N2")</div>
+            </div>
+            <div class="breakdown-card">
+                <h5>Shading Loss (kWh)</h5>
+                <div class="breakdown-value">@ShadingLoss.ToString("N2")</div>
+            </div>
+            <div class="breakdown-card">
+                <h5>Clipping Loss (kWh)</h5>
+                <div class="breakdown-value">@ClippingLoss.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Loss Summary";
+    [Parameter] public string Subtitle { get; set; } = "Loss Timeseries Analysis";
+    [Parameter] public string Description { get; set; } = "Energy losses over time";
+    [Parameter] public string DateRange { get; set; } = "Tuesday 1 April 2025 to Friday 11 April 2025";
+    [Parameter] public Dictionary<string, Dictionary<string, double>> Data { get; set; } = new();
+    [Parameter] public double SoilingLoss { get; set; } = 8516.03;
+    [Parameter] public double ShadingLoss { get; set; } = 53.36;
+    [Parameter] public double ClippingLoss { get; set; } = 0;
+
+    private string CanvasId = Guid.NewGuid().ToString();
+    private bool _chartInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeChart();
+        }
+    }
+
+    private async Task InitializeChart()
+    {
+        // Sample loss data if no data provided
+        if (!Data.Any())
+        {
+            Data = new Dictionary<string, Dictionary<string, double>>
+            {
+                { "Apr 01", new Dictionary<string, double> { {"Soiling", 200}, {"Shading", 50}, {"Downtime", 100}, {"Thermal", 150}, {"Inverter", 80}, {"Clipping", 20}, {"Curtailment", 0} } },
+                { "Apr 02", new Dictionary<string, double> { {"Soiling", 600}, {"Shading", 80}, {"Downtime", 200}, {"Thermal", 300}, {"Inverter", 120}, {"Clipping", 50}, {"Curtailment", 100} } },
+                { "Apr 03", new Dictionary<string, double> { {"Soiling", 1200}, {"Shading", 100}, {"Downtime", 300}, {"Thermal", 800}, {"Inverter", 200}, {"Clipping", 80}, {"Curtailment", 120} } },
+                { "Apr 04", new Dictionary<string, double> { {"Soiling", 1000}, {"Shading", 90}, {"Downtime", 250}, {"Thermal", 600}, {"Inverter", 180}, {"Clipping", 70}, {"Curtailment", 110} } },
+                { "Apr 05", new Dictionary<string, double> { {"Soiling", 1100}, {"Shading", 110}, {"Downtime", 280}, {"Thermal", 700}, {"Inverter", 190}, {"Clipping", 90}, {"Curtailment", 130} } },
+                { "Apr 06", new Dictionary<string, double> { {"Soiling", 1300}, {"Shading", 120}, {"Downtime", 320}, {"Thermal", 900}, {"Inverter", 220}, {"Clipping", 100}, {"Curtailment", 140} } },
+                { "Apr 07", new Dictionary<string, double> { {"Soiling", 1500}, {"Shading", 130}, {"Downtime", 350}, {"Thermal", 800}, {"Inverter", 200}, {"Clipping", 80}, {"Curtailment", 120} } },
+                { "Apr 08", new Dictionary<string, double> { {"Soiling", 1100}, {"Shading", 100}, {"Downtime", 280}, {"Thermal", 600}, {"Inverter", 180}, {"Clipping", 70}, {"Curtailment", 100} } },
+                { "Apr 09", new Dictionary<string, double> { {"Soiling", 150}, {"Shading", 30}, {"Downtime", 80}, {"Thermal", 100}, {"Inverter", 50}, {"Clipping", 20}, {"Curtailment", 30} } },
+                { "Apr 10", new Dictionary<string, double> { {"Soiling", 1400}, {"Shading", 110}, {"Downtime", 300}, {"Thermal", 700}, {"Inverter", 190}, {"Clipping", 80}, {"Curtailment", 120} } }
+            };
+        }
+
+        var labels = Data.Keys.ToArray();
+
+        try
+        {
+            var config = await JSRuntime.InvokeAsync<object>("chartHelper.getLossSummaryChartConfig", 
+                labels, Data);
+            
+            _chartInitialized = await JSRuntime.InvokeAsync<bool>("chartHelper.createChart", CanvasId, config);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing loss summary chart: {ex.Message}");
+        }
+    }
+
+    public async Task UpdateChart(Dictionary<string, Dictionary<string, double>> newData)
+    {
+        Data = newData;
+        
+        if (_chartInitialized)
+        {
+            var labels = Data.Keys.ToArray();
+
+            try
+            {
+                var config = await JSRuntime.InvokeAsync<object>("chartHelper.getLossSummaryChartConfig", 
+                    labels, Data);
+                
+                await JSRuntime.InvokeVoidAsync("chartHelper.updateChart", CanvasId, config);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating loss summary chart: {ex.Message}");
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_chartInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("chartHelper.destroyChart", CanvasId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disposing loss summary chart: {ex.Message}");
+            }
+        }
+    }
+}
+
+<style>
+    .loss-summary-container {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 24px;
+        margin: 20px 0;
+        color: white;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .loss-summary-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(255, 152, 0, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .chart-header {
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .chart-header h3 {
+        color: #ecf0f1;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .date-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        font-size: 0.85rem;
+    }
+
+    .date-label {
+        color: #bdc3c7;
+        margin-bottom: 4px;
+    }
+
+    .date-range {
+        color: #ecf0f1;
+        font-weight: 500;
+    }
+
+    .chart-subtitle h4 {
+        color: #ecf0f1;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-icon {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    .description {
+        color: #bdc3c7;
+        font-size: 0.9rem;
+        margin: 0;
+        opacity: 0.8;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 350px;
+        width: 100%;
+        z-index: 1;
+        margin-bottom: 16px;
+    }
+
+    .loss-summary-container canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #ecf0f1;
+    }
+
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .legend-dot.soiling { background-color: #ff6b6b; }
+    .legend-dot.shading { background-color: #ffd93d; }
+    .legend-dot.downtime { background-color: #6bcf7f; }
+    .legend-dot.thermal { background-color: #ff9800; }
+    .legend-dot.inverter { background-color: #9c27b0; }
+    .legend-dot.clipping { background-color: #4caf50; }
+    .legend-dot.curtailment { background-color: #f44336; }
+
+    .breakdown-section {
+        position: relative;
+        z-index: 1;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .breakdown-section h4 {
+        color: #ecf0f1;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .breakdown-description {
+        color: #bdc3c7;
+        font-size: 0.9rem;
+        margin: 0 0 16px 0;
+        opacity: 0.8;
+    }
+
+    .breakdown-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .breakdown-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .breakdown-card h5 {
+        color: #bdc3c7;
+        font-size: 0.9rem;
+        margin: 0 0 8px 0;
+        font-weight: 500;
+    }
+
+    .breakdown-value {
+        color: #ecf0f1;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 768px) {
+        .loss-summary-container {
+            padding: 16px;
+        }
+        
+        .header-top {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .date-info {
+            align-items: flex-start;
+        }
+        
+        .chart-wrapper {
+            height: 280px;
+        }
+
+        .chart-legend {
+            gap: 12px;
+        }
+
+        .legend-item {
+            font-size: 0.8rem;
+        }
+    }
+</style>

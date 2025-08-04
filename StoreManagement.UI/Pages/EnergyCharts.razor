@@ -1,0 +1,266 @@
+@page "/energy-charts"
+
+<PageTitle>Energy Charts</PageTitle>
+
+<div class="energy-charts-page">
+    <div class="page-header">
+        <h1>Energy Management Dashboard</h1>
+        <p>Comprehensive energy loss analysis and generation monitoring</p>
+    </div>
+
+    <div class="charts-container">
+        <!-- Loss Summary Chart -->
+        <div class="chart-section">
+            <LossSummaryChart 
+                Title="Loss Summary"
+                Subtitle="Loss Timeseries Analysis"
+                Description="Energy losses over time"
+                DateRange="Tuesday 1 April 2025 to Friday 11 April 2025"
+                Data="@lossSummaryData"
+                SoilingLoss="8516.03"
+                ShadingLoss="53.36"
+                ClippingLoss="0" />
+        </div>
+
+        <!-- Hourly Generation Chart -->
+        <div class="chart-section">
+            <HourlyGenerationChart 
+                Title="Hourly Generation Profile"
+                Subtitle="Real-time Intraday Hourly Generation"
+                Description="Solar AC Energy Output within the day - Till Today"
+                DateRange="Sunday 6 April 2025 to Saturday 12 April 2025"
+                LegendLabel="Energy Generated (kWh)"
+                Data="@hourlyGenerationData" />
+        </div>
+    </div>
+
+    <div class="insights-section">
+        <div class="insights-grid">
+            <div class="insight-card">
+                <div class="insight-icon">📊</div>
+                <h3>Total Energy Loss</h3>
+                <div class="insight-value">@totalLoss.ToString("N2") kWh</div>
+                <p>Accumulated energy losses across all categories</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-icon">⚡</div>
+                <h3>Peak Generation</h3>
+                <div class="insight-value">@peakGeneration.ToString("N0") kWh</div>
+                <p>Maximum hourly energy generation recorded</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-icon">🔋</div>
+                <h3>Average Daily Output</h3>
+                <div class="insight-value">@averageDailyOutput.ToString("N1") kWh</div>
+                <p>Mean daily energy generation</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-icon">📈</div>
+                <h3>Efficiency Rate</h3>
+                <div class="insight-value">@efficiencyRate.ToString("N1")%</div>
+                <p>Overall system performance efficiency</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Dictionary<string, Dictionary<string, double>> lossSummaryData = new();
+    private Dictionary<string, List<double>> hourlyGenerationData = new();
+    
+    private double totalLoss = 8569.39;
+    private double peakGeneration = 520;
+    private double averageDailyOutput = 456.7;
+    private double efficiencyRate = 87.3;
+
+    protected override void OnInitialized()
+    {
+        InitializeLossSummaryData();
+        InitializeHourlyGenerationData();
+    }
+
+    private void InitializeLossSummaryData()
+    {
+        lossSummaryData = new Dictionary<string, Dictionary<string, double>>
+        {
+            { "Apr 01", new Dictionary<string, double> { {"Soiling", 200}, {"Shading", 50}, {"Downtime", 100}, {"Thermal", 150}, {"Inverter", 80}, {"Clipping", 20}, {"Curtailment", 0} } },
+            { "Apr 02", new Dictionary<string, double> { {"Soiling", 600}, {"Shading", 80}, {"Downtime", 200}, {"Thermal", 300}, {"Inverter", 120}, {"Clipping", 50}, {"Curtailment", 100} } },
+            { "Apr 03", new Dictionary<string, double> { {"Soiling", 1200}, {"Shading", 100}, {"Downtime", 300}, {"Thermal", 800}, {"Inverter", 200}, {"Clipping", 80}, {"Curtailment", 120} } },
+            { "Apr 04", new Dictionary<string, double> { {"Soiling", 1000}, {"Shading", 90}, {"Downtime", 250}, {"Thermal", 600}, {"Inverter", 180}, {"Clipping", 70}, {"Curtailment", 110} } },
+            { "Apr 05", new Dictionary<string, double> { {"Soiling", 1100}, {"Shading", 110}, {"Downtime", 280}, {"Thermal", 700}, {"Inverter", 190}, {"Clipping", 90}, {"Curtailment", 130} } },
+            { "Apr 06", new Dictionary<string, double> { {"Soiling", 1300}, {"Shading", 120}, {"Downtime", 320}, {"Thermal", 900}, {"Inverter", 220}, {"Clipping", 100}, {"Curtailment", 140} } },
+            { "Apr 07", new Dictionary<string, double> { {"Soiling", 1500}, {"Shading", 130}, {"Downtime", 350}, {"Thermal", 800}, {"Inverter", 200}, {"Clipping", 80}, {"Curtailment", 120} } },
+            { "Apr 08", new Dictionary<string, double> { {"Soiling", 1100}, {"Shading", 100}, {"Downtime", 280}, {"Thermal", 600}, {"Inverter", 180}, {"Clipping", 70}, {"Curtailment", 100} } },
+            { "Apr 09", new Dictionary<string, double> { {"Soiling", 150}, {"Shading", 30}, {"Downtime", 80}, {"Thermal", 100}, {"Inverter", 50}, {"Clipping", 20}, {"Curtailment", 30} } },
+            { "Apr 10", new Dictionary<string, double> { {"Soiling", 1400}, {"Shading", 110}, {"Downtime", 300}, {"Thermal", 700}, {"Inverter", 190}, {"Clipping", 80}, {"Curtailment", 120} } }
+        };
+    }
+
+    private void InitializeHourlyGenerationData()
+    {
+        hourlyGenerationData = new Dictionary<string, List<double>>
+        {
+            { "Apr 06", GenerateHourlyData(500) },
+            { "Apr 07", GenerateHourlyData(520) },
+            { "Apr 08", GenerateHourlyData(480) },
+            { "Apr 09", GenerateHourlyData(460) },
+            { "Apr 10", GenerateHourlyData(490) },
+            { "Apr 11", GenerateHourlyData(300) },
+            { "Apr 12", GenerateHourlyData(510) }
+        };
+    }
+
+    private List<double> GenerateHourlyData(double maxValue)
+    {
+        var data = new List<double>();
+        var random = new Random();
+        
+        // Generate 24 hours of data with solar pattern (peak around noon)
+        for (int hour = 0; hour < 24; hour++)
+        {
+            double value = 0;
+            
+            // Solar generation pattern: 6 AM to 6 PM
+            if (hour >= 6 && hour <= 18)
+            {
+                // Bell curve pattern with peak at noon
+                double normalizedHour = (hour - 12.0) / 6.0; // -1 to 1
+                double bellCurve = Math.Exp(-normalizedHour * normalizedHour * 2);
+                value = maxValue * bellCurve * (0.8 + random.NextDouble() * 0.4); // Add some randomness
+            }
+            
+            data.Add(Math.Round(value, 1));
+        }
+        
+        return data;
+    }
+}
+
+<style>
+    .energy-charts-page {
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+        color: white;
+    }
+
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    .charts-container {
+        display: grid;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .chart-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .insights-section {
+        margin-top: 40px;
+    }
+
+    .insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .insight-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        color: white;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .insight-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .insight-icon {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+    }
+
+    .insight-card h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+        opacity: 0.9;
+    }
+
+    .insight-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #fff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .insight-card p {
+        font-size: 0.9rem;
+        margin: 0;
+        opacity: 0.8;
+        line-height: 1.4;
+    }
+
+    @@media (max-width: 768px) {
+        .energy-charts-page {
+            padding: 16px;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+        
+        .charts-container {
+            gap: 20px;
+        }
+        
+        .chart-section {
+            padding: 16px;
+        }
+        
+        .insights-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .insight-card {
+            padding: 20px;
+        }
+        
+        .insight-value {
+            font-size: 1.6rem;
+        }
+    }
+</style>

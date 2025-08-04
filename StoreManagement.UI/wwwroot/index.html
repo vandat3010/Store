@@ -7,9 +7,29 @@
     <title>StoreManagement.UI</title>
     <base href="/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/netzero-theme.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="StoreManagement.UI.styles.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Theme setup before rendering UI -->
+    <script>
+        // Initialize theme immediately to prevent flash
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            const isDark = savedTheme ? savedTheme === 'dark' : true; // Default to dark
+
+            if (isDark) {
+                document.documentElement.removeAttribute('data-theme');
+                document.body.classList.add('dark-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.body.classList.add('light-theme');
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -26,6 +46,10 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/chartHelper.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 

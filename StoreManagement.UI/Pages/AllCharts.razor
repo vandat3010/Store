@@ -1,0 +1,319 @@
+@page "/all-charts"
+@using StoreManagement.UI.Components.Charts
+
+<PageTitle>All Chart Types</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="text-center mb-3">📊 All Chart Types Dashboard</h1>
+            <p class="text-center text-muted">Comprehensive collection of Chart.js implementations in Blazor</p>
+        </div>
+    </div>
+
+    <!-- Row 1: Bar Chart & Line Chart -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <SalesChart Title="📊 Bar Chart - Monthly Sales" Data="salesData" @ref="salesChart" />
+        </div>
+        <div class="col-lg-6 mb-3">
+            <LineChart Title="📈 Line Chart - Revenue Trend" Data="revenueData" @ref="lineChart" />
+        </div>
+    </div>
+
+    <!-- Row 2: Pie Chart & Doughnut Chart -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <PieChart Title="🥧 Pie Chart - Traffic Sources" Data="trafficData" @ref="pieChart" />
+        </div>
+        <div class="col-lg-6 mb-3">
+            <DoughnutChart Title="🍩 Doughnut Chart - Department Budget" Data="budgetData" @ref="doughnutChart" />
+        </div>
+    </div>
+
+    <!-- Row 3: Area Chart & Dual Axis Chart -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <AreaChart Title="📊 Area Chart - Growth Trend" Data="growthData" @ref="areaChart" />
+        </div>
+        <div class="col-lg-6 mb-3">
+            <DualAxisChart Title="⚡ Dual Axis Chart - Performance Metrics"
+                          PrimaryData="performancePrimary"
+                          SecondaryData="performanceSecondary"
+                          PrimaryLabel="CPU Usage (%)"
+                          SecondaryLabel="Memory Usage (GB)"
+                          PrimaryColor="rgb(255, 99, 132)"
+                          SecondaryColor="rgb(54, 162, 235)"
+                          @ref="dualAxisChart" />
+        </div>
+    </div>
+
+    <!-- Row 4: Solar Chart (Full Width) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <SolarChart Title="🌞 Solar Chart - Irradiance vs Specific Yield Correlation"
+                       Subtitle="Advanced dual-axis chart with dark theme"
+                       PrimaryData="solarPrimaryData"
+                       SecondaryData="solarSecondaryData"
+                       @ref="solarChart" />
+        </div>
+    </div>
+
+    <!-- Row 5: Generation Chart (Full Width) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <GenerationChart Title="⚡ Generation Chart - Daily Energy Output"
+                           Subtitle="Daily Generation"
+                           Description="Total daily energy output"
+                           DateRange="Tuesday 1 April 2025 to Thursday 10 April 2025"
+                           LegendLabel="Energy Generated (MWh)"
+                           Data="generationData"
+                           @ref="generationChart" />
+        </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">🎮 Chart Control Panel</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Individual Updates:</h6>
+                            <div class="btn-group-vertical w-100 mb-3" role="group">
+                                <button class="btn btn-outline-primary mb-2" @onclick="UpdateSalesData">
+                                    📊 Update Bar Chart
+                                </button>
+                                <button class="btn btn-outline-success mb-2" @onclick="UpdateRevenueData">
+                                    📈 Update Line Chart
+                                </button>
+                                <button class="btn btn-outline-info mb-2" @onclick="UpdateTrafficData">
+                                    🥧 Update Pie Chart
+                                </button>
+                                <button class="btn btn-outline-secondary mb-2" @onclick="UpdateBudgetData">
+                                    🍩 Update Doughnut Chart
+                                </button>
+                                <button class="btn btn-outline-success mb-2" @onclick="UpdateGrowthData">
+                                    📊 Update Area Chart
+                                </button>
+                                <button class="btn btn-outline-warning mb-2" @onclick="UpdateDualAxisData">
+                                    ⚡ Update Dual Axis Chart
+                                </button>
+                                <button class="btn btn-outline-dark mb-2" @onclick="UpdateSolarData">
+                                    🌞 Update Solar Chart
+                                </button>
+                                <button class="btn btn-outline-warning mb-2" @onclick="UpdateGenerationData">
+                                    ⚡ Update Generation Chart
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Bulk Operations:</h6>
+                            <div class="btn-group-vertical w-100" role="group">
+                                <button class="btn btn-success mb-2" @onclick="UpdateAllCharts">
+                                    🔄 Update All Charts
+                                </button>
+                                <button class="btn btn-secondary mb-2" @onclick="ResetAllData">
+                                    🔄 Reset All to Default
+                                </button>
+                                <button class="btn btn-danger mb-2" @onclick="RandomizeAllData">
+                                    🎲 Randomize All Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // Chart references
+    private SalesChart salesChart;
+    private LineChart lineChart;
+    private PieChart pieChart;
+    private DoughnutChart doughnutChart;
+    private AreaChart areaChart;
+    private DualAxisChart dualAxisChart;
+    private SolarChart solarChart;
+    private GenerationChart generationChart;
+
+    // Data for all charts
+    private Dictionary<string, double> salesData = new()
+    {
+        { "Jan", 1200 }, { "Feb", 1900 }, { "Mar", 3000 }, 
+        { "Apr", 5000 }, { "May", 2000 }, { "Jun", 3000 }
+    };
+
+    private Dictionary<string, double> revenueData = new()
+    {
+        { "Q1", 15000 }, { "Q2", 23000 }, { "Q3", 18000 }, { "Q4", 27000 }
+    };
+
+    private Dictionary<string, double> trafficData = new()
+    {
+        { "Desktop", 45 }, { "Mobile", 35 }, { "Tablet", 20 }
+    };
+
+    private Dictionary<string, double> budgetData = new()
+    {
+        { "Sales", 30 }, { "Marketing", 25 }, { "Development", 20 },
+        { "Support", 15 }, { "Others", 10 }
+    };
+
+    private Dictionary<string, double> growthData = new()
+    {
+        { "Jan", 12 }, { "Feb", 19 }, { "Mar", 30 },
+        { "Apr", 50 }, { "May", 20 }, { "Jun", 30 }, { "Jul", 45 }
+    };
+
+    private Dictionary<string, double> performancePrimary = new()
+    {
+        { "00:00", 25 }, { "04:00", 30 }, { "08:00", 65 }, 
+        { "12:00", 80 }, { "16:00", 70 }, { "20:00", 45 }
+    };
+
+    private Dictionary<string, double> performanceSecondary = new()
+    {
+        { "00:00", 2.1 }, { "04:00", 2.5 }, { "08:00", 4.2 }, 
+        { "12:00", 5.8 }, { "16:00", 4.9 }, { "20:00", 3.2 }
+    };
+
+    private Dictionary<string, double> solarPrimaryData = new()
+    {
+        { "Apr 01", 1.5 }, { "Apr 02", 2.8 }, { "Apr 03", 4.2 }, 
+        { "Apr 04", 3.8 }, { "Apr 05", 4.1 }, { "Apr 06", 4.5 }, 
+        { "Apr 07", 4.8 }, { "Apr 08", 3.2 }, { "Apr 09", 3.6 }, { "Apr 10", 3.9 }
+    };
+
+    private Dictionary<string, double> solarSecondaryData = new()
+    {
+        { "Apr 01", 2.1 }, { "Apr 02", 3.5 }, { "Apr 03", 4.8 },
+        { "Apr 04", 4.2 }, { "Apr 05", 4.6 }, { "Apr 06", 5.1 },
+        { "Apr 07", 5.8 }, { "Apr 08", 4.1 }, { "Apr 09", 4.8 }, { "Apr 10", 5.2 }
+    };
+
+    private Dictionary<string, double> generationData = new()
+    {
+        { "Apr 01", 2.5 }, { "Apr 02", 4.2 }, { "Apr 03", 7.1 },
+        { "Apr 04", 6.8 }, { "Apr 05", 6.2 }, { "Apr 06", 7.4 },
+        { "Apr 07", 7.74 }, { "Apr 08", 5.8 }, { "Apr 09", 6.1 }, { "Apr 10", 6.5 }
+    };
+
+    // Individual update methods
+    private async Task UpdateSalesData()
+    {
+        var random = new Random();
+        var newData = salesData.Keys.ToDictionary(k => k, k => (double)random.Next(1000, 6000));
+        await salesChart.UpdateChart(newData);
+    }
+
+    private async Task UpdateRevenueData()
+    {
+        var random = new Random();
+        var newData = revenueData.Keys.ToDictionary(k => k, k => (double)random.Next(10000, 30000));
+        await lineChart.UpdateChart(newData);
+    }
+
+    private async Task UpdateTrafficData()
+    {
+        var random = new Random();
+        var total = 100;
+        var desktop = random.Next(30, 60);
+        var mobile = random.Next(20, total - desktop - 5);
+        var tablet = total - desktop - mobile;
+
+        var newData = new Dictionary<string, double>
+        {
+            { "Desktop", desktop }, { "Mobile", mobile }, { "Tablet", tablet }
+        };
+        await pieChart.UpdateChart(newData);
+    }
+
+    private async Task UpdateBudgetData()
+    {
+        var random = new Random();
+        var total = 100;
+        var values = new List<int>();
+        var remaining = total;
+
+        for (int i = 0; i < budgetData.Count - 1; i++)
+        {
+            var value = random.Next(5, remaining / (budgetData.Count - i));
+            values.Add(value);
+            remaining -= value;
+        }
+        values.Add(remaining);
+
+        var newData = budgetData.Keys.Zip(values, (k, v) => new { k, v })
+                                    .ToDictionary(x => x.k, x => (double)x.v);
+        await doughnutChart.UpdateChart(newData);
+    }
+
+    private async Task UpdateGrowthData()
+    {
+        var random = new Random();
+        var newData = growthData.Keys.ToDictionary(k => k, k => (double)random.Next(10, 60));
+        await areaChart.UpdateChart(newData);
+    }
+
+    private async Task UpdateDualAxisData()
+    {
+        var random = new Random();
+        var newPrimary = performancePrimary.Keys.ToDictionary(k => k, k => (double)random.Next(20, 90));
+        var newSecondary = performanceSecondary.Keys.ToDictionary(k => k, k => Math.Round(random.NextDouble() * 5 + 1, 1));
+        await dualAxisChart.UpdateChart(newPrimary, newSecondary);
+    }
+
+    private async Task UpdateSolarData()
+    {
+        var random = new Random();
+        var newPrimary = solarPrimaryData.Keys.ToDictionary(k => k, k => Math.Round(random.NextDouble() * 3.5 + 1.5, 1));
+        var newSecondary = solarSecondaryData.Keys.ToDictionary(k => k, k => Math.Round(random.NextDouble() * 4 + 2, 1));
+        await solarChart.UpdateChart(newPrimary, newSecondary);
+    }
+
+    private async Task UpdateGenerationData()
+    {
+        var random = new Random();
+        var newData = generationData.Keys.ToDictionary(k => k, k => Math.Round(random.NextDouble() * 6 + 2, 2));
+        await generationChart.UpdateChart(newData);
+    }
+
+    // Bulk operations
+    private async Task UpdateAllCharts()
+    {
+        await Task.WhenAll(
+            UpdateSalesData(),
+            UpdateRevenueData(),
+            UpdateTrafficData(),
+            UpdateBudgetData(),
+            UpdateGrowthData(),
+            UpdateDualAxisData(),
+            UpdateSolarData(),
+            UpdateGenerationData()
+        );
+    }
+
+    private async Task ResetAllData()
+    {
+        // Reset to original data
+        await salesChart.UpdateChart(salesData);
+        await lineChart.UpdateChart(revenueData);
+        await pieChart.UpdateChart(trafficData);
+        await doughnutChart.UpdateChart(budgetData);
+        await areaChart.UpdateChart(growthData);
+        await dualAxisChart.UpdateChart(performancePrimary, performanceSecondary);
+        await solarChart.UpdateChart(solarPrimaryData, solarSecondaryData);
+        await generationChart.UpdateChart(generationData);
+    }
+
+    private async Task RandomizeAllData()
+    {
+        await UpdateAllCharts();
+    }
+}

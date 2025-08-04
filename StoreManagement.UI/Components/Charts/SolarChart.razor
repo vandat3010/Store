@@ -1,0 +1,248 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="solar-chart-container">
+    <div class="chart-header">
+        <h4>@Title</h4>
+        <p class="chart-subtitle">@Subtitle</p>
+    </div>
+    <div class="chart-wrapper">
+        <canvas id="@CanvasId"></canvas>
+    </div>
+    <div class="chart-legend">
+        <div class="legend-item">
+            <span class="legend-dot primary"></span>
+            <span>@PrimaryLabel</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot secondary"></span>
+            <span>@SecondaryLabel</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Irradiance vs Specific Yield Correlation";
+    [Parameter] public string Subtitle { get; set; } = "Relationship between Irradiance and Specific Yield (SY)";
+    [Parameter] public Dictionary<string, double> PrimaryData { get; set; } = new();
+    [Parameter] public Dictionary<string, double> SecondaryData { get; set; } = new();
+    [Parameter] public string PrimaryLabel { get; set; } = "Specific Yield (kWh/kWp)";
+    [Parameter] public string SecondaryLabel { get; set; } = "Irradiance (W/m²)";
+
+    private string CanvasId = Guid.NewGuid().ToString();
+    private bool _chartInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeChart();
+        }
+    }
+
+    private async Task InitializeChart()
+    {
+        // Sample solar data if no data provided
+        if (!PrimaryData.Any())
+        {
+            PrimaryData = new Dictionary<string, double>
+            {
+                { "Apr 01", 1.5 },
+                { "Apr 02", 2.8 },
+                { "Apr 03", 4.2 },
+                { "Apr 04", 3.8 },
+                { "Apr 05", 4.1 },
+                { "Apr 06", 4.5 },
+                { "Apr 07", 4.8 },
+                { "Apr 08", 3.2 },
+                { "Apr 09", 3.6 },
+                { "Apr 10", 3.9 }
+            };
+        }
+
+        if (!SecondaryData.Any())
+        {
+            SecondaryData = new Dictionary<string, double>
+            {
+                { "Apr 01", 2.1 },
+                { "Apr 02", 3.5 },
+                { "Apr 03", 4.8 },
+                { "Apr 04", 4.2 },
+                { "Apr 05", 4.6 },
+                { "Apr 06", 5.1 },
+                { "Apr 07", 5.8 },
+                { "Apr 08", 4.1 },
+                { "Apr 09", 4.8 },
+                { "Apr 10", 5.2 }
+            };
+        }
+
+        var labels = PrimaryData.Keys.ToArray();
+        var primaryValues = PrimaryData.Values.ToArray();
+        var secondaryValues = SecondaryData.Values.ToArray();
+
+        try
+        {
+            var config = await JSRuntime.InvokeAsync<object>("chartHelper.getSolarChartConfig", 
+                labels, primaryValues, secondaryValues, PrimaryLabel, SecondaryLabel);
+            
+            _chartInitialized = await JSRuntime.InvokeAsync<bool>("chartHelper.createChart", CanvasId, config);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing solar chart: {ex.Message}");
+        }
+    }
+
+    public async Task UpdateChart(Dictionary<string, double> newPrimaryData, Dictionary<string, double> newSecondaryData)
+    {
+        PrimaryData = newPrimaryData;
+        SecondaryData = newSecondaryData;
+        
+        if (_chartInitialized)
+        {
+            var labels = PrimaryData.Keys.ToArray();
+            var primaryValues = PrimaryData.Values.ToArray();
+            var secondaryValues = SecondaryData.Values.ToArray();
+
+            try
+            {
+                var config = await JSRuntime.InvokeAsync<object>("chartHelper.getSolarChartConfig", 
+                    labels, primaryValues, secondaryValues, PrimaryLabel, SecondaryLabel);
+                
+                await JSRuntime.InvokeVoidAsync("chartHelper.updateChart", CanvasId, config);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating solar chart: {ex.Message}");
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_chartInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("chartHelper.destroyChart", CanvasId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disposing solar chart: {ex.Message}");
+            }
+        }
+    }
+}
+
+<style>
+    .solar-chart-container {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        border-radius: 12px;
+        padding: 24px;
+        margin: 20px 0;
+        color: white;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .solar-chart-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(52, 152, 219, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .chart-header {
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .chart-header h4 {
+        color: #ecf0f1;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .chart-subtitle {
+        color: #bdc3c7;
+        font-size: 0.9rem;
+        margin: 0;
+        opacity: 0.8;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 400px;
+        width: 100%;
+        z-index: 1;
+    }
+
+    .solar-chart-container canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 16px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        color: #ecf0f1;
+    }
+
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .legend-dot.primary {
+        background-color: #2ecc71;
+        box-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
+    }
+
+    .legend-dot.secondary {
+        background-color: #3498db;
+        box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+    }
+</style>
+
+<style>
+    @@media (max-width: 768px) {
+        .solar-chart-container {
+            padding: 16px;
+        }
+
+        .chart-wrapper {
+            height: 300px;
+        }
+
+        .chart-legend {
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+    }
+</style>
